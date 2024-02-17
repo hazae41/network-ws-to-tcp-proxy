@@ -25,8 +25,10 @@ async function onHttpRequest(request: Request) {
   if (request.headers.get("upgrade") !== "websocket")
     return new Response(undefined, { status: 400 })
 
-  const hostname = request.headers.get("x-hostname")
-  const port = request.headers.get("x-port")
+  const url = new URL(request.url)
+
+  const hostname = url.searchParams.get("hostname")
+  const port = url.searchParams.get("port")
 
   if (!hostname)
     return new Response(undefined, { status: 400 })

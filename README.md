@@ -2,9 +2,11 @@
 
 ## Protocol
 
-Connect to the proxy via WebSocket with the following HTTP headers
-- `x-hostname` -> TCP target hostname
-- `x-port` -> TCP target port
+Connect to the proxy via WebSocket with the following URL query parameters
+- `hostname` -> TCP target hostname
+- `port` -> TCP target port
+
+e.g. `ws://localhost:8000/?hostname=google.com&port=80`
 
 The connection then consists of two duplexes
 - you send/receive bytes to talk with the TCP target
