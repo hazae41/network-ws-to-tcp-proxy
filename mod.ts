@@ -1,11 +1,12 @@
+// deno-lint-ignore-file no-empty
 import { writeAll } from "https://deno.land/std@0.216.0/io/mod.ts";
 import { RpcErr, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc";
 import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle";
 
 await initBundledOnce()
 
-const chainIdNumber = 1
-const contractZeroHex = "0xFf61BB11819455d58944A83e44b87E80CFC19eA2"
+const chainIdNumber = 100
+const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
 const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
 
 const secretBase16Set = new Set<string>()
@@ -43,12 +44,16 @@ async function onHttpRequest(request: Request) {
 
   let balanceBigInt = 0n
 
+  const close = () => {
+    try { socket.close() } catch { }
+    try { tcp.close() } catch { }
+  }
+
   const onForward = async (bytes: Uint8Array) => {
     balanceBigInt -= BigInt(bytes.length)
 
     if (balanceBigInt < 0n) {
-      socket.close()
-      tcp.close()
+      close()
       return
     }
 
@@ -59,8 +64,7 @@ async function onHttpRequest(request: Request) {
     balanceBigInt += BigInt(bytes.length)
 
     if (balanceBigInt < 0n) {
-      socket.close()
-      tcp.close()
+      close()
       return
     }
 
@@ -119,7 +123,7 @@ async function onHttpRequest(request: Request) {
 
   tcp.readable
     .pipeTo(new WritableStream({ write: onBackward }))
-    .catch(() => socket.close())
+    .catch(() => close())
 
   socket.addEventListener("message", async (event) => {
     if (typeof event.data === "string")
@@ -127,7 +131,7 @@ async function onHttpRequest(request: Request) {
     return await onForward(new Uint8Array(event.data))
   })
 
-  socket.addEventListener("close", () => tcp.close())
+  socket.addEventListener("close", () => close())
 
   return response
 }

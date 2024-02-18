@@ -1,5 +1,13 @@
 # Example Network WebSocket-to-TCP proxy
 
+## Usage
+
+- Install [Deno](https://deno.com)
+
+```bash
+deno run -A ./mod.ts
+```
+
 ## Protocol
 
 Connect to the proxy via WebSocket with the following URL query parameters
