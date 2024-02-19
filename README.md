@@ -1,6 +1,6 @@
 # Example Network WebSocket-to-TCP proxy
 
-## Installation
+## Deploying on DigitalOcean
 
 - Fork this repository on your GitHub account
 - Set `const receiverZeroHex = ` to your Ethereum address
