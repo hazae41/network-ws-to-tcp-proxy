@@ -128,7 +128,9 @@ async function onHttpRequest(request: Request) {
     balanceBigInt += totalBigInt
     balanceByUuid.set(session, balanceBigInt)
 
-    console.log(totalBigInt, JSON.stringify(secretZeroHexArray))
+    console.log(`Received ${totalBigInt.toString()} wei`)
+
+    Deno.writeTextFileSync("./secrets.txt", JSON.stringify(secretZeroHexArray), { append: true, create: true })
 
     socket.send(JSON.stringify(new RpcOk(request.id, totalBigInt.toString())))
   }
