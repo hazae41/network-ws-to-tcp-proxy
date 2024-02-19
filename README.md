@@ -3,6 +3,9 @@
 ## Usage
 
 - Install [Deno](https://deno.com)
+- Set `const portNumber = ` to your public port
+- Set `const receiverZeroHex = ` to your Ethereum address
+- Run the node
 
 ```bash
 deno run -A ./mod.ts
