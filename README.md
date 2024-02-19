@@ -6,6 +6,19 @@
 - Set `const receiverZeroHex = ` to your Ethereum address
 - Host it as a DigitalOcean App
 
+### Setup
+
+
+<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/c219b5e4-fcaf-4a96-80aa-40faeab1594c" width="500" />
+
+### Billing (only $5/month)
+
+<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/347adfa0-5151-49c7-ae82-91065f8073d0" width="500" />
+
+### Logs
+
+<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/5feb8827-43c5-4db9-b727-1e510feda843" width="500" />
+
 ## Protocol
 
 Connect to the proxy via WebSocket with the following URL query parameters
