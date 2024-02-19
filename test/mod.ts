@@ -22,7 +22,7 @@ const session = crypto.randomUUID()
 const hostname = "5.9.66.94"
 const port = 54782
 
-const socket = new WebSocket(`wss://hammerhead-app-hfbnq.ondigitalocean.app:443/?session=${session}&hostname=${hostname}&port=${port}`)
+const socket = new WebSocket(`ws://localhost:8080/?session=${session}&hostname=${hostname}&port=${port}`)
 
 socket.binaryType = "arraybuffer"
 
