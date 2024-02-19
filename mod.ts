@@ -14,7 +14,7 @@ const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
 const chainIdNumber = 100
 const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
 
-const secretBase16Set = new Set<string>()
+const secretZeroHexSet = new Set<string>()
 
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
 const chainIdMemory = base16_decode_mixed(chainIdBase16)
@@ -93,25 +93,25 @@ async function onHttpRequest(request: Request) {
   }
 
   const onPayment = (request: RpcRequestInit) => {
-    const [secretBase16Array] = request.params as [string[]]
+    const [secretZeroHexArray] = request.params as [string[]]
 
-    if (secretBase16Array.length === 0) {
+    if (secretZeroHexArray.length === 0) {
       socket.send(JSON.stringify(new RpcErr(request.id, new RpcInvalidParamsError())))
       return
     }
 
-    if (secretBase16Array.length > 10) {
+    if (secretZeroHexArray.length > 10) {
       socket.send(JSON.stringify(new RpcErr(request.id, new RpcInvalidParamsError())))
       return
     }
 
     let secretsBase16 = ""
 
-    for (const secretBase16 of secretBase16Array) {
-      if (secretBase16Set.has(secretBase16))
+    for (const secretZeroHex of secretZeroHexArray) {
+      if (secretZeroHexSet.has(secretZeroHex))
         continue
-      secretBase16Set.add(secretBase16)
-      secretsBase16 += secretBase16
+      secretZeroHexSet.add(secretZeroHex)
+      secretsBase16 += secretZeroHex.slice(2)
     }
 
     const secretsMemory = base16_decode_mixed(secretsBase16)
@@ -130,7 +130,7 @@ async function onHttpRequest(request: Request) {
     balanceBigInt += totalBigInt
     balanceByUuid.set(session, balanceBigInt)
 
-    console.log(totalBigInt, secretsBase16)
+    console.log(totalBigInt, JSON.stringify(secretZeroHexArray))
 
     socket.send(JSON.stringify(new RpcOk(request.id, totalBigInt.toString())))
   }

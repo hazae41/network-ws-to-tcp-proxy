@@ -22,7 +22,7 @@ const session = crypto.randomUUID()
 const hostname = "5.9.66.94"
 const port = 54782
 
-const socket = new WebSocket(`ws://localhost:8000/?session=${session}&hostname=${hostname}&port=${port}`)
+const socket = new WebSocket(`ws://localhost:8080/?session=${session}&hostname=${hostname}&port=${port}`)
 
 socket.binaryType = "arraybuffer"
 
@@ -40,10 +40,10 @@ const generatedStruct = mixinStruct.generate(priceMemory)
 const secretsMemory = generatedStruct.encode_secrets()
 const secretsBase16 = base16_encode_lower(secretsMemory)
 
-const secretBase16Array = new Array<string>()
+const secretZeroHexArray = new Array<string>()
 
 for (let i = 0; i < secretsBase16.length; i += 64)
-  secretBase16Array.push(secretsBase16.slice(i, i + 64))
+  secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
 
 const counter = new RpcCounter()
 const events = new EventTarget()
@@ -93,7 +93,7 @@ const requestOrThrow = <T>(preinit: RpcRequestPreinit<unknown>) => {
   })
 }
 
-let balanceBigInt = await requestOrThrow<string>({ method: "net_pay", params: [secretBase16Array] }).then(r => BigInt(r.unwrap()))
+let balanceBigInt = await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
 
 events.addEventListener("bytes", async (event) => {
   const bytes = (event as CustomEvent<Uint8Array>).detail
@@ -106,12 +106,12 @@ events.addEventListener("bytes", async (event) => {
     const secretsMemory = generatedStruct.encode_secrets()
     const secretsBase16 = base16_encode_lower(secretsMemory)
 
-    const secretBase16Array = new Array<string>()
+    const secretZeroHexArray = new Array<string>()
 
     for (let i = 0; i < secretsBase16.length; i += 64)
-      secretBase16Array.push(secretsBase16.slice(i, i + 64))
+      secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
 
-    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretBase16Array] }).then(r => BigInt(r.unwrap()))
+    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
   }
 
   console.log(bytes)
@@ -126,12 +126,12 @@ const send = async (bytes: Uint8Array) => {
     const secretsMemory = generatedStruct.encode_secrets()
     const secretsBase16 = base16_encode_lower(secretsMemory)
 
-    const secretBase16Array = new Array<string>()
+    const secretZeroHexArray = new Array<string>()
 
     for (let i = 0; i < secretsBase16.length; i += 64)
-      secretBase16Array.push(secretsBase16.slice(i, i + 64))
+      secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
 
-    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretBase16Array] }).then(r => BigInt(r.unwrap()))
+    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
   }
 
   socket.send(bytes)
