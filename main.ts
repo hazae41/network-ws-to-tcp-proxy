@@ -148,4 +148,4 @@ async function onHttpRequest(request: Request) {
   return response
 }
 
-Deno.serve(onHttpRequest);
+Deno.serve({ hostname: "0.0.0.0" }, onHttpRequest);
