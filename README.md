@@ -1,15 +1,10 @@
 # Example Network WebSocket-to-TCP proxy
 
-## Usage
+## Installation
 
-- Install [Deno](https://deno.com)
-- Set `const portNumber = ` to your public port
+- Fork this repository on your GitHub account
 - Set `const receiverZeroHex = ` to your Ethereum address
-- Run the node
-
-```bash
-deno run -A ./mod.ts
-```
+- Host it as a DigitalOcean App
 
 ## Protocol
 

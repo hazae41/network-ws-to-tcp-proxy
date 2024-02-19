@@ -8,11 +8,9 @@ await initBundledOnce()
 /**
  * CONFIGURATION
  */
-const portNumber = 8080
-const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
-
 const chainIdNumber = 100
 const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
+const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
 
 const secretZeroHexSet = new Set<string>()
 
@@ -150,7 +148,4 @@ async function onHttpRequest(request: Request) {
   return response
 }
 
-Deno.serve({
-  hostname: "0.0.0.0",
-  port: portNumber,
-}, onHttpRequest);
+Deno.serve(onHttpRequest);
