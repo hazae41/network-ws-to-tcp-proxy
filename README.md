@@ -11,10 +11,11 @@ deno run -A ./mod.ts
 ## Protocol
 
 Connect to the proxy via WebSocket with the following URL query parameters
-- `hostname` -> TCP target hostname
-- `port` -> TCP target port
+- `session` -> A unique private random unguessable string for your session (e.g. `crypto.randomUUID()`)
+- `hostname` -> TCP target hostname (e.g. `google.com`)
+- `port` -> TCP target port (e.g. `80` for HTTP, `443` for HTTPS)
 
-e.g. `ws://localhost:8000/?hostname=google.com&port=80`
+e.g. `ws://localhost:8000/?hostname=google.com&port=80&session=22deac58-7e01-4ddb-b9c4-07c73a32d1b5`
 
 The connection then consists of two duplexes
 - you send/receive bytes to talk with the TCP target

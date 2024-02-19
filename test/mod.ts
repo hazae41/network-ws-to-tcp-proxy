@@ -18,7 +18,11 @@ const receiverMemory = base16_decode_mixed(receiverBase16)
 
 const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory)
 
-const socket = new WebSocket("ws://localhost:8000/?hostname=5.9.66.94&port=54782")
+const session = crypto.randomUUID()
+const hostname = "5.9.66.94"
+const port = 54782
+
+const socket = new WebSocket(`ws://localhost:8000/?session=${session}&hostname=${hostname}&port=${port}`)
 
 socket.binaryType = "arraybuffer"
 

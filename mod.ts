@@ -22,15 +22,20 @@ const receiverMemory = base16_decode_mixed(receiverBase16)
 
 const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory)
 
+const balanceByUuid = new Map<string, bigint>()
+
 async function onHttpRequest(request: Request) {
   if (request.headers.get("upgrade") !== "websocket")
     return new Response(undefined, { status: 400 })
 
   const url = new URL(request.url)
 
+  const session = url.searchParams.get("session")
   const hostname = url.searchParams.get("hostname")
   const port = url.searchParams.get("port")
 
+  if (!session)
+    return new Response(undefined, { status: 400 })
   if (!hostname)
     return new Response(undefined, { status: 400 })
   if (!port)
@@ -42,15 +47,15 @@ async function onHttpRequest(request: Request) {
 
   socket.binaryType = "arraybuffer"
 
-  let balanceBigInt = 0n
-
   const close = () => {
     try { socket.close() } catch { }
     try { tcp.close() } catch { }
   }
 
   const onForward = async (bytes: Uint8Array) => {
+    let balanceBigInt = balanceByUuid.get(session) || 0n
     balanceBigInt -= BigInt(bytes.length)
+    balanceByUuid.set(session, balanceBigInt)
 
     if (balanceBigInt < 0n) {
       close()
@@ -61,7 +66,9 @@ async function onHttpRequest(request: Request) {
   }
 
   const onBackward = (bytes: Uint8Array) => {
-    balanceBigInt += BigInt(bytes.length)
+    let balanceBigInt = balanceByUuid.get(session) || 0n
+    balanceBigInt -= BigInt(bytes.length)
+    balanceByUuid.set(session, balanceBigInt)
 
     if (balanceBigInt < 0n) {
       close()
@@ -114,11 +121,13 @@ async function onHttpRequest(request: Request) {
       return
     }
 
+    let balanceBigInt = balanceByUuid.get(session) || 0n
     balanceBigInt += totalBigInt
+    balanceByUuid.set(session, balanceBigInt)
 
     console.log(totalBigInt, secretsBase16)
 
-    socket.send(JSON.stringify(new RpcOk(request.id, balanceBigInt.toString())))
+    socket.send(JSON.stringify(new RpcOk(request.id, totalBigInt.toString())))
   }
 
   tcp.readable
