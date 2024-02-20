@@ -19,6 +19,23 @@
 
 <img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/5feb8827-43c5-4db9-b727-1e510feda843" width="500" />
 
+### Environment variables
+
+``RECEIVER_ZERO_HEX``:
+  - **Description:** Your Ethereum address as zero-hex prefixed base16 string of length 40 
+  - **Type:** string
+  - **Default:** null
+  - 
+``CHAIN_ID``
+  - **Description:** The Chain ID
+  - **Type:** number
+  - **Default:** 100
+  - 
+``CONTRACT_ZERO_HEX``
+  - **Description:** The contract address
+  - **Type:** string
+  - **Default:** 0xCb781997B869Be704a9e54b0b61363f5F7f6d795
+
 ## Protocol
 
 Connect to the proxy via WebSocket with the following URL query parameters
