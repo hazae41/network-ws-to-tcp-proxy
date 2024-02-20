@@ -27,7 +27,7 @@ const balanceByUuid = new Map<string, bigint>()
 
 async function onHttpRequest(request: Request) {
   if (request.headers.get("upgrade") !== "websocket")
-    return new Response(undefined, { status: 400 })
+    return new Response("Bad Request", { status: 400 })
 
   const url = new URL(request.url)
 
