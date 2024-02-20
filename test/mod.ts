@@ -3,21 +3,6 @@ import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce
 
 await initBundledOnce()
 
-const chainIdNumber = 100
-const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
-const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
-
-const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
-const chainIdMemory = base16_decode_mixed(chainIdBase16)
-
-const contractBase16 = contractZeroHex.slice(2).padStart(64, "0")
-const contractMemory = base16_decode_mixed(contractBase16)
-
-const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")
-const receiverMemory = base16_decode_mixed(receiverBase16)
-
-const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory)
-
 const session = crypto.randomUUID()
 const hostname = "5.9.66.94"
 const port = 54782
@@ -30,20 +15,6 @@ await new Promise((ok, err) => {
   socket.addEventListener("open", ok)
   socket.addEventListener("error", err)
 })
-
-const priceBigInt = 65536n
-const priceBase16 = priceBigInt.toString(16).padStart(64, "0")
-const priceMemory = base16_decode_mixed(priceBase16)
-
-const generatedStruct = mixinStruct.generate(priceMemory)
-
-const secretsMemory = generatedStruct.encode_secrets()
-const secretsBase16 = base16_encode_lower(secretsMemory)
-
-const secretZeroHexArray = new Array<string>()
-
-for (let i = 0; i < secretsBase16.length; i += 64)
-  secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
 
 const counter = new RpcCounter()
 const events = new EventTarget()
@@ -93,26 +64,56 @@ const requestOrThrow = <T>(preinit: RpcRequestPreinit<unknown>) => {
   })
 }
 
-let balanceBigInt = await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
+const {
+  chainIdString,
+  contractZeroHex,
+  receiverZeroHex
+} = await requestOrThrow<{
+  chainIdString: string,
+  contractZeroHex: string,
+  receiverZeroHex: string
+}>({
+  method: "net_get"
+}).then(r => r.unwrap())
+
+const chainIdBase16 = Number(chainIdString).toString(16).padStart(64, "0")
+const chainIdMemory = base16_decode_mixed(chainIdBase16)
+
+const contractBase16 = contractZeroHex.slice(2).padStart(64, "0")
+const contractMemory = base16_decode_mixed(contractBase16)
+
+const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")
+const receiverMemory = base16_decode_mixed(receiverBase16)
+
+const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory)
+
+let balanceBigInt = 0n
+
+async function net_tip() {
+  const priceBigInt = 65536n
+  const priceBase16 = priceBigInt.toString(16).padStart(64, "0")
+  const priceMemory = base16_decode_mixed(priceBase16)
+
+  const generatedStruct = mixinStruct.generate(priceMemory)
+
+  const secretsMemory = generatedStruct.encode_secrets()
+  const secretsBase16 = base16_encode_lower(secretsMemory)
+
+  const secretZeroHexArray = new Array<string>()
+
+  for (let i = 0; i < secretsBase16.length; i += 64)
+    secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
+
+  balanceBigInt += await requestOrThrow<string>({ method: "net_tip", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
+}
 
 events.addEventListener("bytes", async (event) => {
   const bytes = (event as CustomEvent<Uint8Array>).detail
 
   balanceBigInt -= BigInt(bytes.length)
 
-  while (balanceBigInt < 65536n) {
-    const generatedStruct = mixinStruct.generate(priceMemory)
-
-    const secretsMemory = generatedStruct.encode_secrets()
-    const secretsBase16 = base16_encode_lower(secretsMemory)
-
-    const secretZeroHexArray = new Array<string>()
-
-    for (let i = 0; i < secretsBase16.length; i += 64)
-      secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
-
-    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
-  }
+  while (balanceBigInt < 65536n)
+    await net_tip()
 
   console.log(bytes)
 })
@@ -120,19 +121,8 @@ events.addEventListener("bytes", async (event) => {
 const send = async (bytes: Uint8Array) => {
   balanceBigInt -= BigInt(bytes.length)
 
-  while (balanceBigInt < 65536n) {
-    const generatedStruct = mixinStruct.generate(priceMemory)
-
-    const secretsMemory = generatedStruct.encode_secrets()
-    const secretsBase16 = base16_encode_lower(secretsMemory)
-
-    const secretZeroHexArray = new Array<string>()
-
-    for (let i = 0; i < secretsBase16.length; i += 64)
-      secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
-
-    balanceBigInt += await requestOrThrow<string>({ method: "net_pay", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
-  }
+  while (balanceBigInt < 65536n)
+    await net_tip()
 
   socket.send(bytes)
 }

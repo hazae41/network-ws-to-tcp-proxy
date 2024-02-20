@@ -1,40 +1,50 @@
 # Example Network WebSocket-to-TCP proxy
 
-## Deploying on DigitalOcean
+## Deploying
 
-- Fork this repository on your GitHub account
-- Set `const receiverZeroHex = ` to your Ethereum address
-- Host it as a DigitalOcean App
+You can easily deploy a node to cloud services such as DigitalOcean using Docker
 
-### Setup
+### Repository
 
+Fork this repository on your GitHub account
 
 <img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/c219b5e4-fcaf-4a96-80aa-40faeab1594c" width="500" />
 
-### Billing (only $5/month)
+### Environment variables
+
+Setup environment variables
+
+You can also create a `.env` file
+
+#### `RECEIVER_ZERO_HEX` (required)
+
+Your Ethereum address as a 0x-prefixed base16 string
+
+e.g. `0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D`
+
+#### `CONTRACT_ZERO_HEX` (optional)
+
+The contract address as a 0x-prefixed base16 string
+
+e.g. `0xCb781997B869Be704a9e54b0b61363f5F7f6d795`
+
+#### `CHAIN_ID` (optional)
+
+The chain ID as a number or as a 0x-prefixed base16 string
+
+e.g. `100` or `0x64`
+
+### Billing
+
+Choose the cheapest billing ($5/month)
 
 <img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/347adfa0-5151-49c7-ae82-91065f8073d0" width="500" />
 
 ### Logs
 
+Access to your secrets in the logs
+
 <img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/5feb8827-43c5-4db9-b727-1e510feda843" width="500" />
-
-### Environment variables
-
-``RECEIVER_ZERO_HEX``:
-  - **Description:** Your Ethereum address as zero-hex prefixed base16 string of length 40 
-  - **Type:** string
-  - **Default:** null
-  - 
-``CHAIN_ID``
-  - **Description:** The Chain ID
-  - **Type:** number
-  - **Default:** 100
-  - 
-``CONTRACT_ZERO_HEX``
-  - **Description:** The contract address
-  - **Type:** string
-  - **Default:** 0xCb781997B869Be704a9e54b0b61363f5F7f6d795
 
 ## Protocol
 
@@ -65,17 +75,30 @@ So you must count how many bytes you sent/received and pay when your balance is 
 
 The proxy accepts the following JSON-RPC methods
 
-#### net_pay
+#### net_get
+
 ```tsx
 {
   jsonrpc: "2.0",
   id: 123,
-  method: "net_pay",
+  method: "net_get"
+}
+```
+
+Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZeroHex }`
+
+#### net_tip
+
+```tsx
+{
+  jsonrpc: "2.0",
+  id: 123,
+  method: "net_tip",
   params: [string[]]
 }
 ```
 
-Params contains the list of Network secrets as zero-hex prefixed base16 string of length 64
+Params contains the list of Network secrets as a 0x-prefixed base16 string of length 64
 
 e.g.
 
@@ -94,7 +117,7 @@ e.g.
 ]
 ```
 
-**Each payment MUST contains at maximum 10 secrets with a minimum total value of 16384 wei (2 ^ 14)**
+**Each payment MUST contains at maximum 10 secrets with a minimum total value of 65536 wei**
 
 It will return your new balance as a decimal bigint string
 

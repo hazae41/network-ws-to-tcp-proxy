@@ -1,24 +1,18 @@
 // deno-lint-ignore-file no-empty
-import { writeAll } from "https://deno.land/std@0.216.0/io/mod.ts";
-import { RpcErr, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc";
-import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle";
+
+import { NetworkMixin, RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit, base16_decode_mixed, base16_encode_lower, config, initBundledOnce, writeAll } from "./deps.ts";
+
+config({ export: true, safe: true })
 
 await initBundledOnce()
 
-/**
- * CONFIGURATION
- */
-if (!Deno.env.has("RECEIVER_ZERO_HEX")) {
-  console.error("RECEIVER_ZERO_HEX is not set")
-  Deno.exit(1)
-}
-
-const chainIdNumber = Number(Deno.env.get("CHAIN_ID") || 100)
-const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX") || "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
+const chainIdString = Deno.env.get("CHAIN_ID")!
+const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX")!
 const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
 
 const secretZeroHexSet = new Set<string>()
 
+const chainIdNumber = Number(chainIdString)
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
 const chainIdMemory = base16_decode_mixed(chainIdBase16)
 
@@ -43,11 +37,11 @@ async function onHttpRequest(request: Request) {
   const port = url.searchParams.get("port")
 
   if (!session)
-    return new Response(undefined, { status: 400 })
+    return new Response("Bad Request", { status: 400 })
   if (!hostname)
-    return new Response(undefined, { status: 400 })
+    return new Response("Bad Request", { status: 400 })
   if (!port)
-    return new Response(undefined, { status: 400 })
+    return new Response("Bad Request", { status: 400 })
 
   const tcp = await Deno.connect({ hostname, port: Number(port) })
 
@@ -88,25 +82,36 @@ async function onHttpRequest(request: Request) {
 
   const onMessage = (message: string) => {
     const request = JSON.parse(message) as RpcRequestInit
-
-    if (request.method === "net_pay")
-      return onPayment(request)
-
-    socket.send(JSON.stringify(new RpcErr(request.id, new RpcMethodNotFoundError())))
+    socket.send(JSON.stringify(onRequest(request)))
   }
 
-  const onPayment = (request: RpcRequestInit) => {
+  const onRequest = (request: RpcRequestInit) => {
+    try {
+      return new RpcOk(request.id, routeOrThrow(request))
+    } catch (e: unknown) {
+      return new RpcErr(request.id, RpcError.rewrap(e))
+    }
+  }
+
+  const routeOrThrow = (request: RpcRequestInit) => {
+    if (request.method === "net_get")
+      return onNetGet(request)
+    if (request.method === "net_tip")
+      return onNetTip(request)
+    throw new RpcMethodNotFoundError()
+  }
+
+  const onNetGet = (_: RpcRequestInit) => {
+    return { chainIdString, contractZeroHex, receiverZeroHex }
+  }
+
+  const onNetTip = (request: RpcRequestInit) => {
     const [secretZeroHexArray] = request.params as [string[]]
 
-    if (secretZeroHexArray.length === 0) {
-      socket.send(JSON.stringify(new RpcErr(request.id, new RpcInvalidParamsError())))
-      return
-    }
-
-    if (secretZeroHexArray.length > 10) {
-      socket.send(JSON.stringify(new RpcErr(request.id, new RpcInvalidParamsError())))
-      return
-    }
+    if (secretZeroHexArray.length === 0)
+      throw new RpcInvalidParamsError()
+    if (secretZeroHexArray.length > 10)
+      throw new RpcInvalidParamsError()
 
     let secretsBase16 = ""
 
@@ -124,10 +129,8 @@ async function onHttpRequest(request: Request) {
     const totalZeroHex = `0x${totalBase16}`
     const totalBigInt = BigInt(totalZeroHex)
 
-    if (totalBigInt < 16_384n) {
-      socket.send(JSON.stringify(new RpcErr(request.id, new RpcInvalidRequestError())))
-      return
-    }
+    if (totalBigInt < 16_384n)
+      throw new RpcInvalidRequestError()
 
     let balanceBigInt = balanceByUuid.get(session) || 0n
     balanceBigInt += totalBigInt
@@ -136,7 +139,7 @@ async function onHttpRequest(request: Request) {
     console.log(`Received ${totalBigInt.toString()} wei`)
     console.log(JSON.stringify(secretZeroHexArray))
 
-    socket.send(JSON.stringify(new RpcOk(request.id, totalBigInt.toString())))
+    return totalBigInt.toString()
   }
 
   tcp.readable
