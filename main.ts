@@ -13,8 +13,8 @@ if (!Deno.env.has("RECEIVER_ZERO_HEX")) {
   Deno.exit(1)
 }
 
-const chainIdNumber = 100
-const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
+const chainIdNumber = Number(Deno.env.get("CHAIN_ID") || 100)
+const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX") || "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
 const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
 
 const secretZeroHexSet = new Set<string>()
