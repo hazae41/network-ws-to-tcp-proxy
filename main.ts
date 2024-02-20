@@ -1,5 +1,4 @@
 // deno-lint-ignore-file no-empty
-
 import { NetworkMixin, RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit, base16_decode_mixed, base16_encode_lower, config, initBundledOnce, writeAll } from "./deps.ts";
 
 config({ export: true, safe: true })
@@ -129,7 +128,7 @@ async function onHttpRequest(request: Request) {
     const totalZeroHex = `0x${totalBase16}`
     const totalBigInt = BigInt(totalZeroHex)
 
-    if (totalBigInt < 16_384n)
+    if (totalBigInt < 65536n)
       throw new RpcInvalidRequestError()
 
     let balanceBigInt = balanceByUuid.get(session) || 0n

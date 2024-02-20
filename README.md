@@ -98,7 +98,7 @@ Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZer
 }
 ```
 
-Params contains the list of Network secrets as a 0x-prefixed base16 string of length 64
+Params contains the list of Network secrets as 0x-prefixed base16 strings of length 64
 
 e.g.
 
