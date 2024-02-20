@@ -8,9 +8,14 @@ await initBundledOnce()
 /**
  * CONFIGURATION
  */
+if (!Deno.env.has("RECEIVER_ZERO_HEX")) {
+  console.error("RECEIVER_ZERO_HEX is not set")
+  Deno.exit(1)
+}
+
 const chainIdNumber = 100
 const contractZeroHex = "0xCb781997B869Be704a9e54b0b61363f5F7f6d795"
-const receiverZeroHex = "0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D"
+const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
 
 const secretZeroHexSet = new Set<string>()
 
