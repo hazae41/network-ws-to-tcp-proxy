@@ -6,13 +6,11 @@ You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
 ## Deploying
 
-You can easily deploy a node to cloud services such as DigitalOcean using Docker
+You can easily deploy a node to cloud services such as [render.com](https://render.com) using Docker
 
 ### Repository
 
 Fork this repository on your GitHub account
-
-<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/c219b5e4-fcaf-4a96-80aa-40faeab1594c" width="500" />
 
 ### Environment variables
 
@@ -38,17 +36,9 @@ The chain ID as a number or as a 0x-prefixed base16 string
 
 e.g. `100` or `0x64`
 
-### Billing
-
-Choose the cheapest billing ($5/month)
-
-<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/347adfa0-5151-49c7-ae82-91065f8073d0" width="500" />
-
 ### Logs
 
 Access to your secrets in the logs
-
-<img src="https://github.com/hazae41/example-network-websocket-proxy/assets/4405263/5feb8827-43c5-4db9-b727-1e510feda843" width="500" />
 
 ## Protocol
 
