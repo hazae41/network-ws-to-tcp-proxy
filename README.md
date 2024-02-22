@@ -2,6 +2,8 @@
 
 Free WebSocket-to-TCP proxy using Network
 
+You can find public proxies here https://ws-to-tcp-list.hazae41.me/
+
 ## Deploying
 
 You can easily deploy a node to cloud services such as DigitalOcean using Docker
