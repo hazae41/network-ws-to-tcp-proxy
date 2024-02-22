@@ -1,4 +1,6 @@
-# WebSocket-to-TCP proxy using Network
+# WebSocket-to-TCP
+
+Free WebSocket-to-TCP proxy using Network
 
 ## Deploying
 
