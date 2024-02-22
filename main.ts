@@ -10,6 +10,7 @@ const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX")!
 const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
 
 const secretZeroHexSet = new Set<string>()
+const secretZeroHexBuffer = new Array<string>()
 
 const chainIdNumber = Number(chainIdString)
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
@@ -136,7 +137,13 @@ async function onHttpRequest(request: Request) {
     balanceByUuid.set(session, balanceBigInt)
 
     console.log(`Received ${totalBigInt.toString()} wei`)
-    console.log(JSON.stringify(secretZeroHexArray))
+
+    secretZeroHexBuffer.push(...secretZeroHexArray)
+
+    if (secretZeroHexBuffer.length > 659) {
+      const bundle = secretZeroHexBuffer.splice(0, 659)
+      console.log(JSON.stringify(bundle).replaceAll(`"`, ``))
+    }
 
     return totalBigInt.toString()
   }
