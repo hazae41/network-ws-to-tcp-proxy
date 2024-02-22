@@ -1,4 +1,4 @@
-# Example Network WebSocket-to-TCP proxy
+# WebSocket-to-TCP proxy using Network
 
 ## Deploying
 
