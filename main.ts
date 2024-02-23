@@ -9,9 +9,15 @@ await Dotenv.load({ export: true })
 
 await initBundledOnce()
 
-const sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: "allow", types: { bigint: Postgres.BigInt }, onnotice: () => { } })
+let sql: Postgres.Sql<{ bigint: bigint }>
 
-await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
+try {
+  sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: true, types: { bigint: Postgres.BigInt }, onnotice: () => { } })
+  await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
+} catch {
+  sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: false, types: { bigint: Postgres.BigInt }, onnotice: () => { } })
+  await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
+}
 
 let [{ count }] = await sql`SELECT COUNT(*) FROM "secrets" WHERE "claimed" = false;`
 
@@ -132,10 +138,8 @@ async function onHttpRequest(request: Request) {
     if (secretZeroHexArray.length > 10)
       throw new RpcInvalidParamsError()
 
-    const conn = await sql.reserve()
-
     try {
-      const known = await conn`SELECT * FROM "secrets" WHERE "secret" IN ${conn(secretZeroHexArray)};`
+      const known = await sql`SELECT * FROM "secrets" WHERE "secret" IN ${sql(secretZeroHexArray)};`
 
       const filteredSecretZeroHexArray = secretZeroHexArray.filter(x => !known.some(y => y.secret === x))
       const filteredSecretsBase16 = filteredSecretZeroHexArray.reduce((p, x) => p + x.slice(2), ``)
@@ -149,7 +153,7 @@ async function onHttpRequest(request: Request) {
       if (totalBigInt < 65536n)
         throw new RpcInvalidRequestError()
 
-      await conn`INSERT INTO "secrets" ${conn(filteredSecretZeroHexArray.map(secret => ({ secret })))};`
+      await sql`INSERT INTO "secrets" ${sql(filteredSecretZeroHexArray.map(secret => ({ secret })))};`
 
       count += BigInt(filteredSecretZeroHexArray.length)
 
@@ -162,16 +166,16 @@ async function onHttpRequest(request: Request) {
       if (count < 1000n)
         return totalBigInt.toString()
 
-      const batch = await conn`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
+      const batch = await sql`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
+
       console.log(JSON.stringify(batch.map(x => x.secret)).replaceAll(`"`, ``))
+
       count -= BigInt(batch.length)
 
       return totalBigInt.toString()
     } catch (e: unknown) {
       console.log(e)
       throw e
-    } finally {
-      conn.release()
     }
   }
 
