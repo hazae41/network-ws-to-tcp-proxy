@@ -57,8 +57,13 @@ async function onHttpRequest(request: Request) {
   socket.binaryType = "arraybuffer"
 
   const close = () => {
-    try { socket.close() } catch { }
-    try { tcp.close() } catch { }
+    try {
+      socket.close()
+    } catch { }
+
+    try {
+      tcp.close()
+    } catch { }
   }
 
   const onForward = async (bytes: Uint8Array) => {
@@ -71,7 +76,9 @@ async function onHttpRequest(request: Request) {
       return
     }
 
-    await Io.writeAll(tcp, bytes)
+    try {
+      await Io.writeAll(tcp, bytes)
+    } catch { }
   }
 
   const onBackward = (bytes: Uint8Array) => {
@@ -84,12 +91,17 @@ async function onHttpRequest(request: Request) {
       return
     }
 
-    socket.send(bytes)
+    try {
+      socket.send(bytes)
+    } catch { }
   }
 
   const onMessage = async (message: string) => {
     const request = JSON.parse(message) as RpcRequestInit
-    socket.send(JSON.stringify(await onRequest(request)))
+
+    try {
+      socket.send(JSON.stringify(await onRequest(request)))
+    } catch { }
   }
 
   const onRequest = async (request: RpcRequestInit) => {
