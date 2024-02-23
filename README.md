@@ -10,6 +10,8 @@ You can easily deploy a node to cloud hosting such as [render.com](https://rende
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/2e2e349d-ea53-4b72-95c5-7ebc3ba31c14" width="500" />
 
+You also need a PostgreSQL database
+
 ### Repository
 
 Fork this repository on your GitHub account
@@ -21,6 +23,12 @@ Setup environment variables
 You can also create a `.env` file
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/63e4a6cc-2cda-448e-aadc-2a648012e37c" width="500" />
+
+#### `POSTGRES_URL` (required)
+
+The `postgres://...` URL of your PostgreSQL database
+
+e.g. `postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]`
 
 #### `RECEIVER_ZERO_HEX` (required)
 
@@ -119,7 +127,7 @@ e.g.
 
 **Each payment MUST contains at maximum 10 secrets with a minimum total value of 65536 wei**
 
-It will return your new balance as a decimal bigint string
+It will return the amount added to your balance as a decimal bigint string
 
 ```tsx
 {

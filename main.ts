@@ -1,6 +1,7 @@
-// deno-lint-ignore-file no-empty
+// deno-lint-ignore-file no-empty require-await
 import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
 import * as Io from "https://deno.land/std@0.217.0/io/mod.ts";
+import Postgres from "https://deno.land/x/postgresjs@v3.4.3/mod.js";
 import { RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc@1.0.5";
 import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.0.1";
 
@@ -8,12 +9,15 @@ await Dotenv.load({ export: true })
 
 await initBundledOnce()
 
+const sql = Postgres(Deno.env.get("POSTGRES_URL")!, { ssl: true, types: { bigint: Postgres.BigInt } })
+
+await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
+
+let [{ count }] = await sql`SELECT COUNT(*) FROM "secrets" WHERE "claimed" = false;`
+
 const chainIdString = Deno.env.get("CHAIN_ID")!
 const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX")!
 const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
-
-const secretZeroHexSet = new Set<string>()
-const secretZeroHexBuffer = new Array<string>()
 
 const chainIdNumber = Number(chainIdString)
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
@@ -83,32 +87,32 @@ async function onHttpRequest(request: Request) {
     socket.send(bytes)
   }
 
-  const onMessage = (message: string) => {
+  const onMessage = async (message: string) => {
     const request = JSON.parse(message) as RpcRequestInit
-    socket.send(JSON.stringify(onRequest(request)))
+    socket.send(JSON.stringify(await onRequest(request)))
   }
 
-  const onRequest = (request: RpcRequestInit) => {
+  const onRequest = async (request: RpcRequestInit) => {
     try {
-      return new RpcOk(request.id, routeOrThrow(request))
+      return new RpcOk(request.id, await routeOrThrow(request))
     } catch (e: unknown) {
       return new RpcErr(request.id, RpcError.rewrap(e))
     }
   }
 
-  const routeOrThrow = (request: RpcRequestInit) => {
+  const routeOrThrow = async (request: RpcRequestInit) => {
     if (request.method === "net_get")
-      return onNetGet(request)
+      return await onNetGet(request)
     if (request.method === "net_tip")
-      return onNetTip(request)
+      return await onNetTip(request)
     throw new RpcMethodNotFoundError()
   }
 
-  const onNetGet = (_: RpcRequestInit) => {
+  const onNetGet = async (_: RpcRequestInit) => {
     return { chainIdString, contractZeroHex, receiverZeroHex }
   }
 
-  const onNetTip = (request: RpcRequestInit) => {
+  const onNetTip = async (request: RpcRequestInit) => {
     const [secretZeroHexArray] = request.params as [string[]]
 
     if (secretZeroHexArray.length === 0)
@@ -116,39 +120,52 @@ async function onHttpRequest(request: Request) {
     if (secretZeroHexArray.length > 10)
       throw new RpcInvalidParamsError()
 
-    let secretsBase16 = ""
+    const conn = await sql.reserve()
 
-    for (const secretZeroHex of secretZeroHexArray) {
-      if (secretZeroHexSet.has(secretZeroHex))
-        continue
-      secretZeroHexSet.add(secretZeroHex)
-      secretsBase16 += secretZeroHex.slice(2)
+    try {
+      const known = await conn`SELECT * FROM "secrets" WHERE "secret" IN ${conn(secretZeroHexArray)};`
+
+      let secretsBase16 = ""
+
+      for (const secretZeroHex of secretZeroHexArray) {
+        if (known.find(y => y.secretZeroHex === secretZeroHex))
+          continue
+        secretsBase16 += secretZeroHex.slice(2)
+      }
+
+      const secretsMemory = base16_decode_mixed(secretsBase16)
+
+      const totalMemory = mixinStruct.verify_secrets(secretsMemory)
+      const totalBase16 = base16_encode_lower(totalMemory)
+      const totalZeroHex = `0x${totalBase16}`
+      const totalBigInt = BigInt(totalZeroHex)
+
+      if (totalBigInt < 65536n)
+        throw new RpcInvalidRequestError()
+
+      await conn`INSERT INTO "secrets" ${conn(secretZeroHexArray.map(secret => ({ secret })))};`
+
+      count += BigInt(secretZeroHexArray.length)
+
+      let balanceBigInt = balanceByUuid.get(session) || 0n
+      balanceBigInt += totalBigInt
+      balanceByUuid.set(session, balanceBigInt)
+
+      console.log(`Received ${totalBigInt.toString()} wei`)
+
+      if (count > 1000n) {
+        const batch = await conn`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
+        console.log(JSON.stringify(batch.map(x => x.secret)).replaceAll(`"`, ``))
+        count -= BigInt(batch.length)
+      }
+
+      return totalBigInt.toString()
+    } catch (e: unknown) {
+      console.log(e)
+      throw e
+    } finally {
+      conn.release()
     }
-
-    const secretsMemory = base16_decode_mixed(secretsBase16)
-
-    const totalMemory = mixinStruct.verify_secrets(secretsMemory)
-    const totalBase16 = base16_encode_lower(totalMemory)
-    const totalZeroHex = `0x${totalBase16}`
-    const totalBigInt = BigInt(totalZeroHex)
-
-    if (totalBigInt < 65536n)
-      throw new RpcInvalidRequestError()
-
-    let balanceBigInt = balanceByUuid.get(session) || 0n
-    balanceBigInt += totalBigInt
-    balanceByUuid.set(session, balanceBigInt)
-
-    console.log(`Received ${totalBigInt.toString()} wei`)
-
-    secretZeroHexBuffer.push(...secretZeroHexArray)
-
-    if (secretZeroHexBuffer.length > 659) {
-      const bundle = secretZeroHexBuffer.splice(0, 659)
-      console.log(JSON.stringify(bundle).replaceAll(`"`, ``))
-    }
-
-    return totalBigInt.toString()
   }
 
   tcp.readable
@@ -157,7 +174,7 @@ async function onHttpRequest(request: Request) {
 
   socket.addEventListener("message", async (event) => {
     if (typeof event.data === "string")
-      return onMessage(event.data)
+      return await onMessage(event.data)
     return await onForward(new Uint8Array(event.data))
   })
 
