@@ -111,7 +111,7 @@ e.g.
 ]
 ```
 
-**Each payment MUST contains at maximum 10 secrets with a minimum total value of 65536 wei**
+**Each payment MUST contains at maximum 10 secrets with a minimum total value of `2 ** 20` wei**
 
 It will return the amount added to your balance as a decimal bigint string
 
