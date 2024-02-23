@@ -42,7 +42,7 @@ e.g. `100` or `0x64`
 
 ### Logs
 
-Access to your secrets in the logs and copy the secrets
+Access to your logs and copy the secrets ready to be pasted on Etherscan
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/aeca807b-523d-4961-8a3e-ab17e0036e51" width="500" />
 
