@@ -125,17 +125,11 @@ async function onHttpRequest(request: Request) {
     try {
       const known = await conn`SELECT * FROM "secrets" WHERE "secret" IN ${conn(secretZeroHexArray)};`
 
-      let secretsBase16 = ""
+      const filteredSecretZeroHexArray = secretZeroHexArray.filter(secret => !known.some(x => x.secret === secret))
+      const filteredSecretsBase16 = filteredSecretZeroHexArray.reduce((p, x) => p + x.slice(2), ``)
+      const filteredSecretsMemory = base16_decode_mixed(filteredSecretsBase16)
 
-      for (const secretZeroHex of secretZeroHexArray) {
-        if (known.find(y => y.secret === secretZeroHex))
-          continue
-        secretsBase16 += secretZeroHex.slice(2)
-      }
-
-      const secretsMemory = base16_decode_mixed(secretsBase16)
-
-      const totalMemory = mixinStruct.verify_secrets(secretsMemory)
+      const totalMemory = mixinStruct.verify_secrets(filteredSecretsMemory)
       const totalBase16 = base16_encode_lower(totalMemory)
       const totalZeroHex = `0x${totalBase16}`
       const totalBigInt = BigInt(totalZeroHex)
@@ -143,9 +137,9 @@ async function onHttpRequest(request: Request) {
       if (totalBigInt < 65536n)
         throw new RpcInvalidRequestError()
 
-      await conn`INSERT INTO "secrets" ${conn(secretZeroHexArray.map(secret => ({ secret })))};`
+      await conn`INSERT INTO "secrets" ${conn(filteredSecretZeroHexArray.map(secret => ({ secret })))};`
 
-      count += BigInt(secretZeroHexArray.length)
+      count += BigInt(filteredSecretZeroHexArray.length)
 
       let balanceBigInt = balanceByUuid.get(session) || 0n
       balanceBigInt += totalBigInt
@@ -153,11 +147,12 @@ async function onHttpRequest(request: Request) {
 
       console.log(`Received ${totalBigInt.toString()} wei`)
 
-      if (count > 1000n) {
-        const batch = await conn`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
-        console.log(JSON.stringify(batch.map(x => x.secret)).replaceAll(`"`, ``))
-        count -= BigInt(batch.length)
-      }
+      if (count < 1000n)
+        return totalBigInt.toString()
+
+      const batch = await conn`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
+      console.log(JSON.stringify(batch.map(x => x.secret)).replaceAll(`"`, ``))
+      count -= BigInt(batch.length)
 
       return totalBigInt.toString()
     } catch (e: unknown) {
