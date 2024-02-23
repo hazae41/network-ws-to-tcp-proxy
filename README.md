@@ -24,7 +24,7 @@ You can also create a `.env` file
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/63e4a6cc-2cda-448e-aadc-2a648012e37c" width="500" />
 
-#### `POSTGRES_URL` (required)
+#### `DATABASE_URL` (required)
 
 The `postgres://...` URL of your PostgreSQL database
 
