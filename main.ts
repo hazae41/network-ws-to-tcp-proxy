@@ -9,7 +9,7 @@ await Dotenv.load({ export: true })
 
 await initBundledOnce()
 
-const sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: "prefer", types: { bigint: Postgres.BigInt }, onnotice: () => { } })
+const sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: "allow", types: { bigint: Postgres.BigInt }, onnotice: () => { } })
 
 await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
 
