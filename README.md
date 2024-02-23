@@ -85,7 +85,7 @@ The proxy accepts the following JSON-RPC methods
 }
 ```
 
-Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZeroHex, nonceZeroHex }`
+Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZeroHex, nonceZeroHex, minimumZeroHex }`
 
 #### net_tip
 
