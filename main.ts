@@ -1,7 +1,10 @@
 // deno-lint-ignore-file no-empty
-import { NetworkMixin, RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit, base16_decode_mixed, base16_encode_lower, config, initBundledOnce, writeAll } from "./deps.ts";
+import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
+import * as Io from "https://deno.land/std@0.217.0/io/mod.ts";
+import { RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc@1.0.5";
+import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.0.1";
 
-config({ export: true, safe: true })
+await Dotenv.load({ export: true })
 
 await initBundledOnce()
 
@@ -64,7 +67,7 @@ async function onHttpRequest(request: Request) {
       return
     }
 
-    await writeAll(tcp, bytes)
+    await Io.writeAll(tcp, bytes)
   }
 
   const onBackward = (bytes: Uint8Array) => {
