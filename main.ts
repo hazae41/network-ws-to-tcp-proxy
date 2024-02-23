@@ -128,7 +128,7 @@ async function onHttpRequest(request: Request) {
       let secretsBase16 = ""
 
       for (const secretZeroHex of secretZeroHexArray) {
-        if (known.find(y => y.secretZeroHex === secretZeroHex))
+        if (known.find(y => y.secret === secretZeroHex))
           continue
         secretsBase16 += secretZeroHex.slice(2)
       }
