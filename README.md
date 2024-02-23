@@ -20,7 +20,7 @@ Setup environment variables
 
 <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/19c3c3a4-7833-4bf5-bd6c-3dac1e7f6e49" width="500" />
 
-You can also create a `.env` file
+You can also create a `.env` file if you're self-hosting
 
 #### `PRIVATE_KEY_ZERO_HEX` (required)
 
