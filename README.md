@@ -12,6 +12,8 @@ You can easily deploy a node to cloud hosting such as [render.com](https://rende
 
 You also need a PostgreSQL database
 
+<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/a691b178-2159-4595-96fe-5f20daa8553f" width="500" />
+
 ### Repository
 
 Fork this repository on your GitHub account
@@ -26,7 +28,11 @@ You can also create a `.env` file
 
 #### `DATABASE_URL` (required)
 
-The `postgres://...` URL of your PostgreSQL database
+The internal or external `postgres://...` URL of your PostgreSQL database
+
+<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/d73e979e-2d3c-4896-9ce6-0ccf81d735a5" width="500" />
+
+Use the external URL if you're connecting from another hosting
 
 e.g. `postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]`
 
