@@ -125,7 +125,7 @@ async function onHttpRequest(request: Request) {
     try {
       const known = await conn`SELECT * FROM "secrets" WHERE "secret" IN ${conn(secretZeroHexArray)};`
 
-      const filteredSecretZeroHexArray = secretZeroHexArray.filter(secret => !known.some(x => x.secret === secret))
+      const filteredSecretZeroHexArray = secretZeroHexArray.filter(x => !known.some(y => y.secret === x))
       const filteredSecretsBase16 = filteredSecretZeroHexArray.reduce((p, x) => p + x.slice(2), ``)
       const filteredSecretsMemory = base16_decode_mixed(filteredSecretsBase16)
 
