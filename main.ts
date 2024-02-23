@@ -1,29 +1,28 @@
 // deno-lint-ignore-file no-empty require-await
 import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
 import * as Io from "https://deno.land/std@0.217.0/io/mod.ts";
-import Postgres from "https://deno.land/x/postgresjs@v3.4.3/mod.js";
 import { RpcErr, RpcError, RpcInvalidParamsError, RpcInvalidRequestError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc@1.0.5";
-import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.0.1";
+import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.1.0";
+import * as Ethers from "npm:ethers";
+import Abi from "./token.abi.json" with { type: "json" };
 
 await Dotenv.load({ export: true })
 
 await initBundledOnce()
 
-let sql: Postgres.Sql<{ bigint: bigint }>
-
-try {
-  sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: true, types: { bigint: Postgres.BigInt }, onnotice: () => { } })
-  await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
-} catch {
-  sql = Postgres(Deno.env.get("DATABASE_URL")!, { ssl: false, types: { bigint: Postgres.BigInt }, onnotice: () => { } })
-  await sql`CREATE TABLE IF NOT EXISTS "secrets" ("secret" TEXT PRIMARY KEY, "claimed" BOOLEAN NOT NULL DEFAULT FALSE);`
-}
-
-let [{ count }] = await sql`SELECT COUNT(*) FROM "secrets" WHERE "claimed" = false;`
-
 const chainIdString = Deno.env.get("CHAIN_ID")!
 const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX")!
-const receiverZeroHex = Deno.env.get("RECEIVER_ZERO_HEX")!
+const privateKeyZeroHex = Deno.env.get("PRIVATE_KEY_ZERO_HEX")!
+
+const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
+const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
+const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
+
+let txNonce = await wallet.getNonce("pending")
+
+const minimumBigInt = 2n ** 20n
+const minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+const minimumZeroHex = `0x${minimumBase16}`
 
 const chainIdNumber = Number(chainIdString)
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
@@ -32,10 +31,24 @@ const chainIdMemory = base16_decode_mixed(chainIdBase16)
 const contractBase16 = contractZeroHex.slice(2).padStart(64, "0")
 const contractMemory = base16_decode_mixed(contractBase16)
 
+const receiverZeroHex = wallet.address
 const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")
 const receiverMemory = base16_decode_mixed(receiverBase16)
 
-const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory)
+// const pricePerByteBigInt = 1n
+// const pricePerByteBase16 = pricePerByteBigInt.toString(16).padStart(64, "0")
+// const pricePerByteZeroHex = `0x${pricePerByteBase16}`
+
+let nonceBytes = crypto.getRandomValues(new Uint8Array(32))
+let nonceMemory = new Memory(nonceBytes)
+let nonceBase16 = base16_encode_lower(nonceMemory)
+let nonceZeroHex = `0x${nonceBase16}`
+
+let allSecretZeroHexSet = new Set<string>()
+let allSecretZeroHexArray = new Array<string>()
+let allSecretBalance = 0n
+
+let mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
 
 const balanceByUuid = new Map<string, bigint>()
 
@@ -103,11 +116,12 @@ async function onHttpRequest(request: Request) {
   }
 
   const onMessage = async (message: string) => {
-    const request = JSON.parse(message) as RpcRequestInit
-
     try {
+      const request = JSON.parse(message) as RpcRequestInit
       socket.send(JSON.stringify(await onRequest(request)))
-    } catch { }
+    } catch (e: unknown) {
+      console.error(e)
+    }
   }
 
   const onRequest = async (request: RpcRequestInit) => {
@@ -127,7 +141,7 @@ async function onHttpRequest(request: Request) {
   }
 
   const onNetGet = async (_: RpcRequestInit) => {
-    return { chainIdString, contractZeroHex, receiverZeroHex }
+    return { chainIdString, contractZeroHex, receiverZeroHex, nonceZeroHex, minimumZeroHex }
   }
 
   const onNetTip = async (request: RpcRequestInit) => {
@@ -138,45 +152,50 @@ async function onHttpRequest(request: Request) {
     if (secretZeroHexArray.length > 10)
       throw new RpcInvalidParamsError()
 
-    try {
-      const known = await sql`SELECT * FROM "secrets" WHERE "secret" IN ${sql(secretZeroHexArray)};`
+    const filteredSecretZeroHexArray = secretZeroHexArray.filter(x => !allSecretZeroHexSet.has(x))
+    const filteredSecretsBase16 = filteredSecretZeroHexArray.reduce((p, x) => p + x.slice(2), ``)
+    const filteredSecretsMemory = base16_decode_mixed(filteredSecretsBase16)
 
-      const filteredSecretZeroHexArray = secretZeroHexArray.filter(x => !known.some(y => y.secret === x))
-      const filteredSecretsBase16 = filteredSecretZeroHexArray.reduce((p, x) => p + x.slice(2), ``)
-      const filteredSecretsMemory = base16_decode_mixed(filteredSecretsBase16)
+    const valueMemory = mixinStruct.verify_secrets(filteredSecretsMemory)
+    const valueBase16 = base16_encode_lower(valueMemory)
+    const valueZeroHex = `0x${valueBase16}`
+    const valueBigInt = BigInt(valueZeroHex)
 
-      const totalMemory = mixinStruct.verify_secrets(filteredSecretsMemory)
-      const totalBase16 = base16_encode_lower(totalMemory)
-      const totalZeroHex = `0x${totalBase16}`
-      const totalBigInt = BigInt(totalZeroHex)
+    if (valueBigInt < minimumBigInt)
+      throw new RpcInvalidRequestError()
 
-      if (totalBigInt < 65536n)
-        throw new RpcInvalidRequestError()
+    for (const secretZeroHex of filteredSecretZeroHexArray)
+      allSecretZeroHexSet.add(secretZeroHex)
 
-      await sql`INSERT INTO "secrets" ${sql(filteredSecretZeroHexArray.map(secret => ({ secret })))};`
+    let balanceBigInt = balanceByUuid.get(session) || 0n
+    balanceBigInt += valueBigInt
+    balanceByUuid.set(session, balanceBigInt)
 
-      count += BigInt(filteredSecretZeroHexArray.length)
+    console.log(`Received ${valueBigInt.toString()} wei`)
 
-      let balanceBigInt = balanceByUuid.get(session) || 0n
-      balanceBigInt += totalBigInt
-      balanceByUuid.set(session, balanceBigInt)
+    allSecretZeroHexArray.push(...filteredSecretZeroHexArray)
+    allSecretBalance += valueBigInt
 
-      console.log(`Received ${totalBigInt.toString()} wei`)
+    if (allSecretZeroHexArray.length < 650)
+      return valueBigInt.toString()
 
-      if (count < 1000n)
-        return totalBigInt.toString()
+    console.log(`Claiming ${allSecretBalance.toString()} wei`)
 
-      const batch = await sql`UPDATE "secrets" SET "claimed" = true WHERE "secret" IN (SELECT "secret" FROM "secrets" WHERE "claimed" = false LIMIT 659) RETURNING *;`
+    contract.claim(nonceZeroHex, allSecretZeroHexArray).catch(console.error)
 
-      console.log(JSON.stringify(batch.map(x => x.secret)).replaceAll(`"`, ``))
+    txNonce++
 
-      count -= BigInt(batch.length)
+    nonceBytes = crypto.getRandomValues(new Uint8Array(32))
+    nonceMemory = new Memory(nonceBytes)
+    nonceBase16 = base16_encode_lower(nonceMemory)
+    nonceZeroHex = `0x${nonceBase16}`
 
-      return totalBigInt.toString()
-    } catch (e: unknown) {
-      console.log(e)
-      throw e
-    }
+    allSecretZeroHexSet = new Set<string>()
+    allSecretZeroHexArray = new Array<string>()
+
+    mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
+
+    return valueBigInt.toString()
   }
 
   tcp.readable

@@ -10,10 +10,6 @@ You can easily deploy a node to cloud hosting such as [render.com](https://rende
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/2e2e349d-ea53-4b72-95c5-7ebc3ba31c14" width="500" />
 
-You also need a PostgreSQL database
-
-<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/a691b178-2159-4595-96fe-5f20daa8553f" width="500" />
-
 ### Repository
 
 Fork this repository on your GitHub account
@@ -26,27 +22,17 @@ You can also create a `.env` file
 
 <img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/63e4a6cc-2cda-448e-aadc-2a648012e37c" width="500" />
 
-#### `DATABASE_URL` (required)
+#### `PRIVATE_KEY_ZERO_HEX` (required)
 
-The internal or external `postgres://...` URL of your PostgreSQL database
+Your Ethereum private key as a 0x-prefixed base16 string
 
-<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/d73e979e-2d3c-4896-9ce6-0ccf81d735a5" width="500" />
-
-Use the external URL if you're connecting from another hosting
-
-e.g. `postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]`
-
-#### `RECEIVER_ZERO_HEX` (required)
-
-Your Ethereum address as a 0x-prefixed base16 string
-
-e.g. `0x39dfd20386F5d17eBa42763606B8c704FcDd1c1D`
+e.g. `0x35609a4c7e0334d76e15d107c52ee4e9beab1199556cef78fd8624351c0e2c8c`
 
 #### `CONTRACT_ZERO_HEX` (optional)
 
 The contract address as a 0x-prefixed base16 string
 
-e.g. `0xCb781997B869Be704a9e54b0b61363f5F7f6d795`
+e.g. `0xF1eC047cbd662607BBDE9Badd572cf0A23E1130B`
 
 #### `CHAIN_ID` (optional)
 
@@ -99,7 +85,7 @@ The proxy accepts the following JSON-RPC methods
 }
 ```
 
-Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZeroHex }`
+Returns the Network parameters as `{ chainIdString, contractZeroHex, receiverZeroHex, nonceZeroHex }`
 
 #### net_tip
 
