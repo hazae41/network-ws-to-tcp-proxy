@@ -6,7 +6,9 @@ You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
 ## Deploying
 
-You can easily deploy a node to cloud services such as [render.com](https://render.com) using Docker
+You can easily deploy a node to cloud hosting such as [render.com](https://render.com) as a web service using Docker
+
+<img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/2e2e349d-ea53-4b72-95c5-7ebc3ba31c14" width="500" />
 
 ### Repository
 
@@ -17,6 +19,8 @@ Fork this repository on your GitHub account
 Setup environment variables
 
 You can also create a `.env` file
+
+<img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/63e4a6cc-2cda-448e-aadc-2a648012e37c" width="500" />
 
 #### `RECEIVER_ZERO_HEX` (required)
 
@@ -38,7 +42,9 @@ e.g. `100` or `0x64`
 
 ### Logs
 
-Access to your secrets in the logs
+Access to your secrets in the logs and copy the secrets
+
+<img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/aeca807b-523d-4961-8a3e-ab17e0036e51" width="500" />
 
 ## Protocol
 
