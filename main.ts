@@ -33,18 +33,13 @@ const receiverZeroHex = wallet.address
 const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")
 const receiverMemory = base16_decode_mixed(receiverBase16)
 
-// const pricePerByteBigInt = 1n
-// const pricePerByteBase16 = pricePerByteBigInt.toString(16).padStart(64, "0")
-// const pricePerByteZeroHex = `0x${pricePerByteBase16}`
-
 let nonceBytes = crypto.getRandomValues(new Uint8Array(32))
 let nonceMemory = new Memory(nonceBytes)
 let nonceBase16 = base16_encode_lower(nonceMemory)
 let nonceZeroHex = `0x${nonceBase16}`
 
 let allSecretZeroHexSet = new Set<string>()
-let allSecretZeroHexArray = new Array<string>()
-let allSecretBalance = 0n
+let allSecretBalanceBigInt = 0n
 
 let mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
 
@@ -84,9 +79,8 @@ async function onHttpRequest(request: Request) {
   }
 
   const onForward = async (bytes: Uint8Array) => {
-    let balanceBigInt = balanceByUuid.get(session) || 0n
-    balanceBigInt -= BigInt(bytes.length)
-    balanceByUuid.set(session, balanceBigInt)
+    const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
+    balanceByUuid.set(session, balanceBigInt - BigInt(bytes.length))
 
     if (balanceBigInt < 0n) {
       close()
@@ -99,9 +93,8 @@ async function onHttpRequest(request: Request) {
   }
 
   const onBackward = (bytes: Uint8Array) => {
-    let balanceBigInt = balanceByUuid.get(session) || 0n
-    balanceBigInt -= BigInt(bytes.length)
-    balanceByUuid.set(session, balanceBigInt)
+    const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
+    balanceByUuid.set(session, balanceBigInt - BigInt(bytes.length))
 
     if (balanceBigInt < 0n) {
       close()
@@ -165,31 +158,28 @@ async function onHttpRequest(request: Request) {
     for (const secretZeroHex of filteredSecretZeroHexArray)
       allSecretZeroHexSet.add(secretZeroHex)
 
-    let balanceBigInt = balanceByUuid.get(session) || 0n
-    balanceBigInt += valueBigInt
-    balanceByUuid.set(session, balanceBigInt)
+    const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
+    balanceByUuid.set(session, balanceBigInt + valueBigInt)
 
     console.log(`Received ${valueBigInt.toString()} wei`)
 
-    allSecretZeroHexArray.push(...filteredSecretZeroHexArray)
-    allSecretBalance += valueBigInt
+    allSecretBalanceBigInt += valueBigInt
 
-    if (allSecretZeroHexArray.length < 650)
-      return valueBigInt.toString()
+    if (allSecretZeroHexSet.size > 640) {
+      console.log(`Claiming ${allSecretBalanceBigInt.toString()} wei`)
 
-    console.log(`Claiming ${allSecretBalance.toString()} wei`)
+      contract.claim(nonceZeroHex, [...allSecretZeroHexSet]).catch(console.error)
 
-    contract.claim(nonceZeroHex, allSecretZeroHexArray).catch(console.error)
+      allSecretZeroHexSet = new Set<string>()
+      allSecretBalanceBigInt = 0n
 
-    nonceBytes = crypto.getRandomValues(new Uint8Array(32))
-    nonceMemory = new Memory(nonceBytes)
-    nonceBase16 = base16_encode_lower(nonceMemory)
-    nonceZeroHex = `0x${nonceBase16}`
+      nonceBytes = crypto.getRandomValues(new Uint8Array(32))
+      nonceMemory = new Memory(nonceBytes)
+      nonceBase16 = base16_encode_lower(nonceMemory)
+      nonceZeroHex = `0x${nonceBase16}`
 
-    allSecretZeroHexSet = new Set<string>()
-    allSecretZeroHexArray = new Array<string>()
-
-    mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
+      mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemory, nonceMemory)
+    }
 
     return valueBigInt.toString()
   }
