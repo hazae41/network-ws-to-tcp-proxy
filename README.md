@@ -4,7 +4,7 @@ Free WebSocket-to-TCP proxy using Network
 
 You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
-## Deploying
+## Getting started
 
 You can easily deploy a node to cloud hosting such as [render.com](https://render.com) as a web service using Docker
 
