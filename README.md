@@ -8,7 +8,7 @@ You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
 You can easily deploy a node to cloud hosting such as [render.com](https://render.com) as a web service using Docker
 
-<img src="https://github.com/hazae41/ws-to-tcp/assets/4405263/2e2e349d-ea53-4b72-95c5-7ebc3ba31c14" width="500" />
+<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/57eb5e56-7475-4bbf-9ba0-548f1444d6ff" width="500" />
 
 ### Repository
 
