@@ -6,13 +6,13 @@ You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
 ## Getting started
 
+### Hosting
+
 You can easily deploy a node to cloud hosting such as [render.com](https://render.com) as a web service using Docker
 
+Fork this repository on your GitHub account and select it on your cloud hosting platform
+
 <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/57eb5e56-7475-4bbf-9ba0-548f1444d6ff" width="500" />
-
-### Repository
-
-Fork this repository on your GitHub account
 
 ### Environment variables
 
@@ -39,6 +39,31 @@ e.g. `0xF1eC047cbd662607BBDE9Badd572cf0A23E1130B`
 The chain ID as a number or as a 0x-prefixed base16 string
 
 e.g. `100` or `0x64`
+
+### Registering
+
+You can register your proxy so it can be used by applications and services
+
+Your node should 
+- be publicly accessible via HTTPS (this should be the case if you used a cloud hosting)
+- respond with correct access-control headers (this should be the case if you used a cloud hosting)
+- have a correct uptime (this should be the case if you pay for it)
+
+You should also setup a DNS to point to your node if you can, to prevent the registry from being full of dead addresses
+
+<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/16a8748c-32c2-4eae-beda-64101531e2ab" width="500" />
+
+You can test the connection to your node by running the following code in the DevTools console of a non-CSP-protected page (e.g. the new tab page on Chrome)
+
+```tsx
+new WebSocket("wss://HOSTNAME") // replace HOSTNAME by the hostname or IP address of your node (e.g. myproxy.mywebsite.com)
+```
+
+If you see no error, then you can register your node by calling `register` with the hostname or IP address of your node (e.g. `myproxy.mywebsite.com`)
+
+https://gnosisscan.io/address/0x23Ece04aF67cC4c484f3A4b136A6F97b76A12Ebe#writeContract
+
+<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/6296cb76-3dc8-4b58-a6a0-7ab620f1ec99" width="500" />
 
 ## Protocol
 
