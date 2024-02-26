@@ -49,7 +49,7 @@ Your node should
 - respond with correct access-control headers (this should be the case if you used a cloud hosting)
 - have a correct uptime (this should be the case if you pay for it)
 
-> You should also setup a DNS to point to your node if you can, to prevent the registry from being full of dead addresses
+> You should also setup a custom domain name to point to your node if you can, to prevent the registry from being full of dead addresses
 > 
 > <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/16a8748c-32c2-4eae-beda-64101531e2ab" width="500" />
 
