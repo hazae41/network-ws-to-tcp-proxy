@@ -8,7 +8,7 @@ You can find public proxies here https://ws-to-tcp-list.hazae41.me/
 
 ### Hosting
 
-You can easily deploy a node to cloud hosting such as [render.com](https://render.com) as a web service using Docker
+You can easily deploy a proxy to cloud hosting such as [render.com](https://render.com) as a web service using Docker
 
 Fork this repository on your GitHub account and select it on your cloud hosting platform
 
@@ -44,38 +44,38 @@ e.g. `100` or `0x64`
 
 You can register your proxy so it can be used by applications and services
 
-Your node should 
+Your proxy should 
 - be publicly accessible via HTTPS (this should be the case if you used a cloud hosting)
 - respond with correct access-control headers (this should be the case if you used a cloud hosting)
 - have a correct uptime (this should be the case if you pay for it)
 
-> You should also setup a custom domain name to point to your node if you can, to prevent the registry from being full of dead addresses
+> You should also setup a custom domain name to point to your proxy if you can, to prevent the registry from being full of dead addresses
 > 
 > <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/16a8748c-32c2-4eae-beda-64101531e2ab" width="500" />
 
-You can test the connection to your node by running the following code in the DevTools console of a non-CSP-protected page (e.g. the new tab page on Chrome)
+You can test the connection to your proxy by running the following code in the DevTools console of a non-CSP-protected page (e.g. the new tab page on Chrome)
 
 ```tsx
 new WebSocket("wss://HOSTNAME[:PORT]")
 ```
 
-> Replace HOSTNAME by the domain name (or IP address) of your node (e.g. `myproxy.mywebsite.com`)
+> Replace HOSTNAME by the domain name (or IP address) of your proxy (e.g. `myproxy.mywebsite.com`)
 > 
-> And PORT is only required if your node is on another port than 443 (the HTTPS port)
+> And PORT is only required if your proxy is on another port than 443 (the HTTPS port)
 > 
-> For example, if your node is on a cloud hosting, the port should be 443, so you need to do
+> For example, if your proxy is on a cloud hosting, the port should be 443, so you need to do
 >
 > ```tsx
 > new WebSocket("wss://myproxy.mywebsite.com")
 > ```
 >
-> If you self-host your node on port 12345, you need to do
+> If you self-host your proxy on port 12345, you need to do
 > 
 > ```tsx
 > new WebSocket("wss://myproxy.mywebsite.com:12345")
 > ```
 
-If you see no error, then you can register your node by calling `register` with `HOSTNAME[:PORT]`
+If you see no error, then you can register your proxy by calling `register` with `HOSTNAME[:PORT]`
 
 https://gnosisscan.io/address/0x23Ece04aF67cC4c484f3A4b136A6F97b76A12Ebe#writeContract
 
