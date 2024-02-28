@@ -44,7 +44,7 @@ const mixinStruct = new NetworkMixin(chainIdMemory, contractMemory, receiverMemo
 const allSecretZeroHexSet = new Set<string>()
 
 let pendingSecretZeroHexArray = new Array<string>()
-let pendingSecretBalanceBigInt = 0n
+let pendingTotalValueBigInt = 0n
 
 const balanceByUuid = new Map<string, bigint>()
 
@@ -167,14 +167,14 @@ async function onHttpRequest(request: Request) {
     console.log(`Received ${valueBigInt.toString()} wei`)
 
     pendingSecretZeroHexArray.push(secretZeroHex)
-    pendingSecretBalanceBigInt += valueBigInt
+    pendingTotalValueBigInt += valueBigInt
 
     if (allSecretZeroHexSet.size > 640) {
-      console.log(`Claiming ${pendingSecretBalanceBigInt.toString()} wei`)
+      console.log(`Claiming ${pendingTotalValueBigInt.toString()} wei`)
       contract.claim(nonceZeroHex, pendingSecretZeroHexArray).catch(console.warn)
 
       pendingSecretZeroHexArray = new Array<string>()
-      pendingSecretBalanceBigInt = 0n
+      pendingTotalValueBigInt = 0n
     }
 
     return valueBigInt.toString()
