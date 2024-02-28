@@ -11,11 +11,11 @@ await Dotenv.load({ envPath: "./.env.local", export: true })
 
 await initBundledOnce()
 
-const chainIdString = "5000"
-const contractZeroHex = "0x86175CB1cf1AF5320a9616B775Fc0f471378bda0"
+const chainIdString = "100"
+const contractZeroHex = "0xF1eC047cbd662607BBDE9Badd572cf0A23E1130B"
 const privateKeyZeroHex = Deno.env.get("PRIVATE_KEY_ZERO_HEX")!
 
-const provider = new Ethers.JsonRpcProvider("https://mantle-rpc.publicnode.com")
+const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
 const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
 const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
 
