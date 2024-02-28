@@ -84,6 +84,11 @@ while (true) {
       method: "net_get"
     }).then(r => r.unwrap())
 
+    // const minimumBigInt = BigInt(minimumZeroHex)
+
+    // if (minimumBigInt > (2n ** 20n))
+    //   throw new Error("Minimum too high")
+
     const chainIdBase16 = Number(chainIdString).toString(16).padStart(64, "0")
     const chainIdMemory = base16_decode_mixed(chainIdBase16)
 

@@ -1,7 +1,9 @@
 // deno-lint-ignore-file no-empty require-await
 import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
 import * as Io from "https://deno.land/std@0.217.0/io/mod.ts";
+import { Future } from "npm:@hazae41/future@1.0.3";
 import { RpcErr, RpcError, RpcInvalidParamsError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc@1.0.5";
+import { Mutex } from "npm:@hazae41/mutex@1.2.12";
 import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.2.1";
 import * as Ethers from "npm:ethers";
 import Abi from "./token.abi.json" with { type: "json" };
@@ -18,10 +20,6 @@ const privateKeyZeroHex = Deno.env.get("PRIVATE_KEY_ZERO_HEX")!
 const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
 const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
 const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
-
-const minimumBigInt = 2n ** 18n
-const minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
-const minimumZeroHex = `0x${minimumBase16}`
 
 const chainIdNumber = Number(chainIdString)
 const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
@@ -45,6 +43,12 @@ const allSecretZeroHexSet = new Set<string>()
 
 let pendingSecretZeroHexArray = new Array<string>()
 let pendingTotalValueBigInt = 0n
+
+const mutex = new Mutex(undefined)
+
+let minimumBigInt = 2n ** 16n
+let minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+let minimumZeroHex = `0x${minimumBase16}`
 
 const balanceByUuid = new Map<string, bigint>()
 
@@ -169,9 +173,87 @@ async function onHttpRequest(request: Request) {
     pendingSecretZeroHexArray.push(secretZeroHex)
     pendingTotalValueBigInt += valueBigInt
 
+    const claim = async (pendingTotalValueBigInt: bigint, pendingSecretZeroHexArray: string[]) => {
+      const backpressure = mutex.locked
+
+      if (backpressure) {
+        minimumBigInt = minimumBigInt * 2n
+        minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+        minimumZeroHex = `0x${minimumBase16}`
+
+        console.log(`Increasing minimum to ${minimumBigInt.toString()} wei`)
+      }
+
+      await mutex.lock(async () => {
+        if (backpressure) {
+          minimumBigInt = minimumBigInt / 2n
+          minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+          minimumZeroHex = `0x${minimumBase16}`
+
+          console.log(`Decreasing minimum to ${minimumBigInt.toString()} wei`)
+        }
+
+        const nonce = await wallet.getNonce("latest")
+
+        while (true) {
+          const signal = AbortSignal.timeout(15000)
+          const future = new Future<never>()
+
+          const onAbort = () => future.reject(new Error("Aborted"))
+
+          try {
+            signal.addEventListener("abort", onAbort, { passive: true })
+
+            console.log(`Claiming ${pendingTotalValueBigInt.toString()} wei`)
+            const responsePromise = contract.claim(nonceZeroHex, pendingSecretZeroHexArray, { nonce })
+            const response = await Promise.race([responsePromise, future.promise])
+
+            console.log(`Waiting for ${response.hash} on ${response.nonce}`)
+            const receipt = await Promise.race([response.wait(), future.promise])
+
+            return receipt
+          } catch (e: unknown) {
+            if (signal.aborted)
+              continue
+            throw e
+          } finally {
+            signal.removeEventListener("abort", onAbort)
+          }
+        }
+      })
+    }
+
+    const warn = (e: unknown) => {
+      if (e == null) {
+        console.error("ERROR", e)
+        return
+      }
+
+      if (typeof e !== "object") {
+        console.error("ERROR", e)
+        return
+      }
+
+      if ("info" in e) {
+        warn(e.info)
+        return
+      }
+
+      if ("error" in e) {
+        warn(e.error)
+        return
+      }
+
+      if ("message" in e) {
+        console.error("ERROR", e.message)
+        return
+      }
+
+      console.error("ERROR", e)
+    }
+
     if (pendingSecretZeroHexArray.length > 640) {
-      console.log(`Claiming ${pendingTotalValueBigInt.toString()} wei`)
-      contract.claim(nonceZeroHex, pendingSecretZeroHexArray).catch(console.warn)
+      claim(pendingTotalValueBigInt, pendingSecretZeroHexArray).catch(warn)
 
       pendingSecretZeroHexArray = new Array<string>()
       pendingTotalValueBigInt = 0n
