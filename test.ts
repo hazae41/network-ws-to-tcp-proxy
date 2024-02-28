@@ -1,5 +1,5 @@
 import { RpcCounter, RpcRequest, RpcRequestPreinit, RpcResponse, RpcResponseInit } from "npm:@hazae41/jsonrpc@1.0.5";
-import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.1.0";
+import { NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.2.1";
 
 await initBundledOnce()
 
@@ -103,15 +103,11 @@ while (true) {
 
     const generatedStruct = mixinStruct.generate(minimumMemory)
 
-    const secretsMemory = generatedStruct.encode_secrets()
-    const secretsBase16 = base16_encode_lower(secretsMemory)
+    const secretMemory = generatedStruct.to_secret()
+    const secretBase16 = base16_encode_lower(secretMemory)
+    const secretZeroHex = `0x${secretBase16}`
 
-    const secretZeroHexArray = new Array<string>()
-
-    for (let i = 0; i < secretsBase16.length; i += 64)
-      secretZeroHexArray.push(`0x${secretsBase16.slice(i, i + 64)}`)
-
-    balanceBigInt += await requestOrThrow<string>({ method: "net_tip", params: [secretZeroHexArray] }).then(r => BigInt(r.unwrap()))
+    balanceBigInt += await requestOrThrow<string>({ method: "net_tip", params: [secretZeroHex] }).then(r => BigInt(r.unwrap()))
   }
 
   events.addEventListener("bytes", async (event) => {

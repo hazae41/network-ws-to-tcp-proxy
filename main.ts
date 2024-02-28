@@ -19,7 +19,7 @@ const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
 const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
 const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
 
-const minimumBigInt = 2n ** 20n
+const minimumBigInt = 2n ** 18n
 const minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
 const minimumZeroHex = `0x${minimumBase16}`
 
@@ -169,7 +169,7 @@ async function onHttpRequest(request: Request) {
     pendingSecretZeroHexArray.push(secretZeroHex)
     pendingTotalValueBigInt += valueBigInt
 
-    if (allSecretZeroHexSet.size > 640) {
+    if (pendingSecretZeroHexArray.length > 640) {
       console.log(`Claiming ${pendingTotalValueBigInt.toString()} wei`)
       contract.claim(nonceZeroHex, pendingSecretZeroHexArray).catch(console.warn)
 

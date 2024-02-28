@@ -134,8 +134,6 @@ e.g.
 }
 ```
 
-**It MUST have a minimum value of `2 ** 20` wei**
-
 It will return the value added to your balance as a decimal bigint string
 
 ```tsx
