@@ -12,7 +12,7 @@ await Dotenv.load({ envPath: "./.env.local", export: true })
 await initBundledOnce()
 
 const chainIdString = "100"
-const contractZeroHex = "0xF1eC047cbd662607BBDE9Badd572cf0A23E1130B"
+const contractZeroHex = "0x7e19298D4c9b0b97b9A40A5ac08Cc9105534324f"
 const privateKeyZeroHex = Deno.env.get("PRIVATE_KEY_ZERO_HEX")!
 
 const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
