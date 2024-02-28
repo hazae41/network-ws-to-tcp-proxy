@@ -20,25 +20,13 @@ Setup environment variables
 
 <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/19c3c3a4-7833-4bf5-bd6c-3dac1e7f6e49" width="500" />
 
-You can also create a `.env` file if you're self-hosting
+You can also create a `.env` or `.env.local` file if you're self-hosting
 
 #### `PRIVATE_KEY_ZERO_HEX` (required)
 
 Your Ethereum private key as a 0x-prefixed base16 string
 
 e.g. `0x35609a4c7e0334d76e15d107c52ee4e9beab1199556cef78fd8624351c0e2c8c`
-
-#### `CONTRACT_ZERO_HEX` (optional)
-
-The contract address as a 0x-prefixed base16 string
-
-e.g. `0xF1eC047cbd662607BBDE9Badd572cf0A23E1130B`
-
-#### `CHAIN_ID` (optional)
-
-The chain ID as a number or as a 0x-prefixed base16 string
-
-e.g. `100` or `0x64`
 
 ### Registering
 

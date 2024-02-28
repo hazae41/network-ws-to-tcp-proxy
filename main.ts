@@ -6,15 +6,16 @@ import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBun
 import * as Ethers from "npm:ethers";
 import Abi from "./token.abi.json" with { type: "json" };
 
-await Dotenv.load({ export: true })
+await Dotenv.load({ envPath: "./.env", export: true })
+await Dotenv.load({ envPath: "./.env.local", export: true })
 
 await initBundledOnce()
 
-const chainIdString = Deno.env.get("CHAIN_ID")!
-const contractZeroHex = Deno.env.get("CONTRACT_ZERO_HEX")!
+const chainIdString = "5000"
+const contractZeroHex = "0x86175CB1cf1AF5320a9616B775Fc0f471378bda0"
 const privateKeyZeroHex = Deno.env.get("PRIVATE_KEY_ZERO_HEX")!
 
-const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
+const provider = new Ethers.JsonRpcProvider("https://mantle-rpc.publicnode.com")
 const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
 const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
 
