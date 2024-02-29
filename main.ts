@@ -86,8 +86,9 @@ async function onHttpRequest(request: Request) {
   }
 
   const onForward = async (bytes: Uint8Array) => {
-    const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
-    balanceByUuid.set(session, balanceBigInt - BigInt(bytes.length))
+    let [balanceBigInt = 0n] = [balanceByUuid.get(session)]
+    balanceBigInt = balanceBigInt - BigInt(bytes.length)
+    balanceByUuid.set(session, balanceBigInt)
 
     if (balanceBigInt < 0n) {
       close()
@@ -100,8 +101,9 @@ async function onHttpRequest(request: Request) {
   }
 
   const onBackward = (bytes: Uint8Array) => {
-    const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
-    balanceByUuid.set(session, balanceBigInt - BigInt(bytes.length))
+    let [balanceBigInt = 0n] = [balanceByUuid.get(session)]
+    balanceBigInt = balanceBigInt - BigInt(bytes.length)
+    balanceByUuid.set(session, balanceBigInt)
 
     if (balanceBigInt < 0n) {
       close()
