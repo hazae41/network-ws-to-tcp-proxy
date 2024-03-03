@@ -17,7 +17,7 @@ run:
 logs:
 	@docker logs $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
-open:	docker-logs
+open:	logs
 	@docker attach $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
 stop:
