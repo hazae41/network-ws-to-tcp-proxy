@@ -8,23 +8,100 @@ You can find public proxies here https://ws-to-tcp.hazae41.me/
 
 ### Hosting
 
-You can easily deploy a proxy to cloud hosting such as [render.com](https://render.com) as a web service using Docker
+#### Cloud-hosting
 
-Fork this repository on your GitHub account and select it on your cloud hosting platform
+You can easily deploy it as a Dockerized web service to cloud-hosting providers such as [render.com](https://render.com).
+
+Prices are ~$5 for the cheapest hosting. Do not use free tiers as they may have high downtimes.
+
+Just fork this repository on your GitHub account and select it on your cloud hosting platform.
 
 <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/57eb5e56-7475-4bbf-9ba0-548f1444d6ff" width="500" />
 
-### Environment variables
-
-Setup environment variables
+Then setup environment variables (see list below)
 
 <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/19c3c3a4-7833-4bf5-bd6c-3dac1e7f6e49" width="500" />
 
-You can also create a `.env` or `.env.local` file if you're self-hosting
+#### Self-hosting
+
+You just need 
+- Docker (e.g. for [Ubuntu](https://docs.docker.com/engine/install/ubuntu/))
+- Make (e.g. `sudo apt-get install make`)
+- Git (e.g. `sudo apt-get install git`)
+
+Then clone the repository (or fork-then-clone)
+
+```bash
+git clone https://github.com/hazae41/network-ws-to-tcp-proxy && cd network-ws-to-tcp-proxy
+```
+
+Setup environment variables (see list below) by creating a `.env.local` file
+
+```bash
+nano .env.local
+```
+
+Edit the outbound port in `Makefile`
+
+```bash
+nano Makefile
+```
+
+```Makefile
+PORT=8080
+```
+
+You can then: 
+
+- Build the latest commit
+
+```bash
+make build
+```
+
+- Start the latest commit
+
+```bash
+make start
+```
+
+- Show logs
+
+```bash
+make logs
+```
+
+- Open console (kill with ctrl+c; close with ctrl+p then ctrl+q)
+
+```bash
+make open
+```
+
+- Stop all instances
+
+```bash
+make stop
+```
+
+- Clean all builds
+
+```bash
+make clean
+```
+
+- Update to latest version
+
+```bash
+git reset --hard && git checkout $(git tag | sort -V | tail -1) 
+```
+
+### Environment variables
 
 #### `PRIVATE_KEY_ZERO_HEX` (required)
 
-Your Ethereum private key as a 0x-prefixed base16 string
+Your Ethereum private key as a 0x-prefixed base16 string.
+
+This account must have some xDAI (gas on Gnosis chain).
 
 e.g. `0x35609a4c7e0334d76e15d107c52ee4e9beab1199556cef78fd8624351c0e2c8c`
 

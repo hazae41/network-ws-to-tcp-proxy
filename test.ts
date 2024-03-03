@@ -8,7 +8,7 @@ while (true) {
   const hostname = "5.9.66.94"
   const port = 54782
 
-  const socket = new WebSocket(`wss://ws-to-tcp.node0.hazae41.me/?session=${session}&hostname=${hostname}&port=${port}`)
+  const socket = new WebSocket(`ws://localhost:3000/?session=${session}&hostname=${hostname}&port=${port}`)
 
   socket.binaryType = "arraybuffer"
 

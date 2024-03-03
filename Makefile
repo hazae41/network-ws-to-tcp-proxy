@@ -1,4 +1,5 @@
-PORT=8080
+#!make
+include .env.local
 
 help:
 	@echo "make build"
@@ -11,7 +12,7 @@ help:
 build:
 	@docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
 
-run:
+start:
 	@docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 logs:

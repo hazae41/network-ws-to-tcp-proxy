@@ -1,10 +1,11 @@
 import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
 import { serve } from "./mod.ts";
 
-const a = await Dotenv.load({ envPath: new URL(import.meta.resolve("./.env")).pathname, examplePath: null })
-const b = await Dotenv.load({ envPath: new URL(import.meta.resolve("./.env.local")).pathname, examplePath: null })
+const envPath = new URL(import.meta.resolve("./.env.local")).pathname
 
-const { PRIVATE_KEY_ZERO_HEX = Deno.env.get("PRIVATE_KEY_ZERO_HEX") } = { ...a, ...b }
+const {
+  PRIVATE_KEY_ZERO_HEX = Deno.env.get("PRIVATE_KEY_ZERO_HEX")
+} = await Dotenv.load({ envPath })
 
 const chainIdString = "100"
 const contractZeroHex = "0x0a4d5EFEa910Ea5E39be428A3d57B80BFAbA52f4"
@@ -15,4 +16,6 @@ if (privateKeyZeroHex == null)
 
 const { onHttpRequest } = await serve({ chainIdString, contractZeroHex, privateKeyZeroHex })
 
-Deno.serve({ hostname: "0.0.0.0", port: 8080 }, onHttpRequest)
+Deno.serve({ hostname: "0.0.0.0", port: 8080, onListen: () => { } }, onHttpRequest)
+
+console.log("Started")
