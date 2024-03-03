@@ -28,3 +28,9 @@ docker-clean:
 	@docker rmi $$(docker images -aq $$(basename $(PWD)))
 
 docker: docker-build docker-run docker-open
+
+deno-run:
+	@deno cache ./deps.ts
+	@deno run -A ./main.ts
+
+deno: deno-run

@@ -6,6 +6,7 @@ EXPOSE 8080
 # Prefer not to run as root.
 USER deno
 
+# Create a new directory for your application.
 WORKDIR /app
 
 # Cache the dependencies as a layer (the following two steps are re-run only when deps.ts is modified).
