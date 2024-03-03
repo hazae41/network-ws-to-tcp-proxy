@@ -2,7 +2,7 @@
 
 Free WebSocket-to-TCP proxy using [Network](https://github.com/stars/hazae41/lists/network)
 
-You can find public proxies here https://ws-to-tcp-list.hazae41.me/
+You can find public proxies here https://ws-to-tcp.hazae41.me/
 
 ## Getting started
 
