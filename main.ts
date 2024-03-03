@@ -8,8 +8,8 @@ import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBun
 import * as Ethers from "npm:ethers";
 import Abi from "./token.abi.json" with { type: "json" };
 
-await Dotenv.load({ envPath: "./.env", export: true })
-await Dotenv.load({ envPath: "./.env.local", export: true })
+await Dotenv.load({ envPath: "./.env", export: true, examplePath: null })
+await Dotenv.load({ envPath: "./.env.local", export: true, examplePath: null })
 
 await initBundledOnce()
 
