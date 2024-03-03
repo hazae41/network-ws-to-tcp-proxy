@@ -10,7 +10,7 @@ help:
 docker-build:
 	@docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
 
-docker-run: docker-build
+docker-run:
 	@docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 docker-logs:
@@ -22,7 +22,7 @@ docker-open:	docker-logs
 docker-stop:
 	@docker stop $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
-docker-clean: docker-stop
+docker-clean:
 	@docker rmi $$(docker images -aq $$(basename $(PWD)))
 
 docker: docker-build docker-run docker-open
