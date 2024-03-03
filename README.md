@@ -43,7 +43,7 @@ cp ./.env.example ./.env.local && nano ./.env.local
 
 You can then: 
 
-- Build the latest commit
+- Build the latest commit (and latest environment variables)
 
 ```bash
 make build
@@ -89,7 +89,7 @@ git reset --hard && git checkout $(git tag | sort -V | tail -1)
 
 #### `PORT` (required)
 
-The exposed Docker port
+The exposed port
 
 e.g. `8080`
 

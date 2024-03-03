@@ -10,10 +10,10 @@ help:
 	@echo "make clean"
 
 build:
-	@docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
+	@docker build --build-arg port=$(PORT) -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
 
 start:
-	@docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
+	@docker run --rm -dit -p $(PORT):$(PORT) $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 logs:
 	@docker logs $$(docker ps -a | awk '{ print $$1,$$2 }' | grep $$(basename $(PWD))  | awk '{print $$1 }')
