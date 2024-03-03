@@ -1,0 +1,16 @@
+{
+  "name": "network-ws-to-tcp-proxy",
+  "version": "0.4.2",
+  "description": "Free WebSocket-to-TCP proxy using Network",
+  "scripts": {
+    "run:deno": "deno run -A ./main.ts",
+    "run:docker": "npm run docker:build && (npm run docker:run; npm run docker:clean)",
+    "docker:build": "docker build -t $(basename $PWD):$(git log -1 --pretty=%h) .",
+    "docker:run": "docker run --rm -dit -p $PORT:8080 $(basename $PWD):$(git log -1 --pretty=%h)",
+    "docker:logs": "docker logs $(docker ps -aq --filter ancestor=$(basename $PWD):$(git log -1 --pretty=%h))",
+    "docker:open": "npm run docker:logs && docker attach $(docker ps -aq --filter ancestor=$(basename $PWD):$(git log -1 --pretty=%h))",
+    "docker:clean": "docker rmi $(docker images -aq $(basename $PWD))"
+  },
+  "author": "",
+  "license": "MIT"
+}
