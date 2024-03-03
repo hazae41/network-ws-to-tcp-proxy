@@ -8,21 +8,21 @@ help:
 	@echo "docker"
 
 docker-build:
-	docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
+	@docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
 
-docker-run:
-	docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
+docker-run: docker-build
+	@docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 docker-logs:
-	docker logs $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
+	@docker logs $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
 docker-open:	docker-logs
-	docker attach $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
+	@docker attach $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
 docker-stop:
-	docker stop $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
+	@docker stop $$(docker ps -aq --filter ancestor=$$(basename $(PWD)):$$(git log -1 --pretty=%h))
 
 docker-clean: docker-stop
-	docker rmi $$(docker images -aq $$(basename $(PWD)))
+	@docker rmi $$(docker images -aq $$(basename $(PWD)))
 
-docker: docker-build docker-run
+docker: docker-build docker-run docker-open
