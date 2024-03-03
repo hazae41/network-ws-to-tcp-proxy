@@ -1,12 +1,12 @@
 PORT=8080
 
 help:
-	@echo "build"
-	@echo "run"
-	@echo "logs"
-	@echo "open"
-	@echo "stop"
-	@echo "clean"
+	@echo "make build"
+	@echo "make run"
+	@echo "make logs"
+	@echo "make open"
+	@echo "make stop"
+	@echo "make clean"
 
 build:
 	@docker build -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
