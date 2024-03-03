@@ -15,13 +15,13 @@ run:
 	@docker run --rm -dit -p $(PORT):8080 $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 logs:
-	@docker logs $$(docker ps -a | awk '{ print $1,$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
+	@docker logs $$(docker ps -a | awk '{ print $$1,$$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
 
 open:	logs
-	@docker attach $$(docker ps -a | awk '{ print $1,$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
+	@docker attach $$(docker ps -a | awk '{ print $$1,$$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
 
 stop:
-	@docker stop $$(docker ps -a | awk '{ print $1,$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
+	@docker stop $$(docker ps -a | awk '{ print $$1,$$2 }' | grep $$(basename $PWD)  | awk '{print $$1 }')
 
 clean:
 	@docker rmi $$(docker images -aq $$(basename $(PWD)))
