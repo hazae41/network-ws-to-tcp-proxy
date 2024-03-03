@@ -32,23 +32,13 @@ You just need
 Then clone the repository (or fork-then-clone)
 
 ```bash
-git clone https://github.com/hazae41/network-ws-to-tcp-proxy && cd network-ws-to-tcp-proxy
+git clone https://github.com/hazae41/network-ws-to-tcp-proxy && cd ./network-ws-to-tcp-proxy
 ```
 
 Setup environment variables (see list below) by creating a `.env.local` file
 
 ```bash
-nano .env.local
-```
-
-Edit the outbound port in `Makefile`
-
-```bash
-nano Makefile
-```
-
-```Makefile
-PORT=8080
+cp ./.env.example ./.env.local && nano ./.env.local
 ```
 
 You can then: 
@@ -96,6 +86,12 @@ git reset --hard && git checkout $(git tag | sort -V | tail -1)
 ```
 
 ### Environment variables
+
+#### `PORT` (required)
+
+The exposed Docker port
+
+e.g. `8080`
 
 #### `PRIVATE_KEY_ZERO_HEX` (required)
 
