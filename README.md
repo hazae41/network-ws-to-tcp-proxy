@@ -43,13 +43,13 @@ cp ./.env.example ./.env.local && nano ./.env.local
 
 You can then: 
 
-- Build the latest commit (and latest environment variables)
+- Build the latest commit and latest environment variables
 
 ```bash
 make build
 ```
 
-- Start the latest commit
+- Start and open console (kill with ctrl+c; close with ctrl+p then ctrl+q)
 
 ```bash
 make start
