@@ -5,7 +5,7 @@ PORT?=8080
 
 help:
 	@echo "make build"
-	@echo "make run"
+	@echo "make start"
 	@echo "make logs"
 	@echo "make open"
 	@echo "make stop"
