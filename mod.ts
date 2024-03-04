@@ -8,28 +8,24 @@ import * as Ethers from "npm:ethers";
 import Abi from "./token.abi.json" with { type: "json" };
 
 export async function serve(params: {
-  chainIdString: string
-  contractZeroHex: string
   privateKeyZeroHex: string
 }) {
-  const {
-    chainIdString,
-    contractZeroHex,
-    privateKeyZeroHex,
-  } = params
+  const { privateKeyZeroHex } = params
 
   await initBundledOnce()
 
-  const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
-  const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
-  const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
-
+  const chainIdString = "100"
   const chainIdNumber = Number(chainIdString)
   const chainIdBase16 = chainIdNumber.toString(16).padStart(64, "0")
   const chainIdMemory = base16_decode_mixed(chainIdBase16)
 
+  const contractZeroHex = "0x0a4d5EFEa910Ea5E39be428A3d57B80BFAbA52f4"
   const contractBase16 = contractZeroHex.slice(2).padStart(64, "0")
   const contractMemory = base16_decode_mixed(contractBase16)
+
+  const provider = new Ethers.JsonRpcProvider("https://gnosis-rpc.publicnode.com")
+  const wallet = new Ethers.Wallet(privateKeyZeroHex).connect(provider)
+  const contract = new Ethers.Contract(contractZeroHex, Abi, wallet)
 
   const receiverZeroHex = wallet.address
   const receiverBase16 = receiverZeroHex.slice(2).padStart(64, "0")

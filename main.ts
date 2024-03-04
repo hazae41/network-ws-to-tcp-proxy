@@ -12,10 +12,8 @@ if (PRIVATE_KEY_ZERO_HEX == null)
   throw new Error("PRIVATE_KEY_ZERO_HEX is not set")
 
 const port = Number(PORT)
-const chainIdString = "100"
-const contractZeroHex = "0x0a4d5EFEa910Ea5E39be428A3d57B80BFAbA52f4"
 const privateKeyZeroHex = PRIVATE_KEY_ZERO_HEX
 
-const { onHttpRequest } = await serve({ chainIdString, contractZeroHex, privateKeyZeroHex })
+const { onHttpRequest } = await serve({ privateKeyZeroHex })
 
 Deno.serve({ hostname: "0.0.0.0", port }, onHttpRequest)
