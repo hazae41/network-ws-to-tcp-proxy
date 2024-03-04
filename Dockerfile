@@ -2,6 +2,8 @@ FROM denoland/deno:latest
 
 ARG port=8080
 
+RUN echo "Building on port $port"
+
 ENV PORT=$port
 
 # The port that your application listens to.
