@@ -1,4 +1,5 @@
 // deno-lint-ignore-file no-empty require-await
+import * as Dotenv from "https://deno.land/std@0.217.0/dotenv/mod.ts";
 import * as Io from "https://deno.land/std@0.217.0/io/mod.ts";
 import { Future } from "npm:@hazae41/future@1.0.3";
 import { RpcErr, RpcError, RpcInvalidParamsError, RpcMethodNotFoundError, RpcOk, RpcRequestInit } from "npm:@hazae41/jsonrpc@1.0.5";
@@ -6,6 +7,21 @@ import { Mutex } from "npm:@hazae41/mutex@1.2.12";
 import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.2.1";
 import * as Ethers from "npm:ethers";
 import Abi from "./token.abi.json" with { type: "json" };
+
+export async function main() {
+  const envPath = new URL(import.meta.resolve("./.env.local")).pathname
+
+  const {
+    PRIVATE_KEY_ZERO_HEX = Deno.env.get("PRIVATE_KEY_ZERO_HEX"),
+  } = await Dotenv.load({ envPath, examplePath: null })
+
+  if (PRIVATE_KEY_ZERO_HEX == null)
+    throw new Error("PRIVATE_KEY_ZERO_HEX is not set")
+
+  const privateKeyZeroHex = PRIVATE_KEY_ZERO_HEX
+
+  return await serve({ privateKeyZeroHex })
+}
 
 export async function serve(params: {
   privateKeyZeroHex: string
