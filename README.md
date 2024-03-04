@@ -91,7 +91,7 @@ git reset --hard && git checkout $(git tag | sort -V | tail -1)
 
 **Don't set if cloud-hosting**
 
-The exposed port 
+The exposed port
 
 e.g. `8080`
 
