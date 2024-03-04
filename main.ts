@@ -4,12 +4,10 @@ import { serve } from "./mod.ts";
 const envPath = new URL(import.meta.resolve("./.env.local")).pathname
 
 const {
-  PORT = Deno.env.get("PORT"),
+  PORT = Deno.env.get("PORT") || "8080",
   PRIVATE_KEY_ZERO_HEX = Deno.env.get("PRIVATE_KEY_ZERO_HEX"),
-} = await Dotenv.load({ envPath })
+} = await Dotenv.load({ envPath, examplePath: null })
 
-if (PORT == null)
-  throw new Error("PORT is not set")
 if (PRIVATE_KEY_ZERO_HEX == null)
   throw new Error("PRIVATE_KEY_ZERO_HEX is not set")
 

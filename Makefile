@@ -1,6 +1,8 @@
 #!make
 include .env.local
 
+PORT?=8080
+
 help:
 	@echo "make build"
 	@echo "make run"

@@ -87,9 +87,9 @@ git reset --hard && git checkout $(git tag | sort -V | tail -1)
 
 ### Environment variables
 
-#### `PORT` (required)
+#### `PORT` (default to 8080)
 
-The exposed port
+The exposed port (not required if cloud-hosting)
 
 e.g. `8080`
 
