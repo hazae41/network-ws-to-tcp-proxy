@@ -85,6 +85,8 @@ make clean
 git reset --hard && git checkout $(git tag | sort -V | tail -1) 
 ```
 
+You can enable HTTPS by either using Cloudflare as a HTTPS-to-HTTP reverse proxy, or by configuring Nginx as a HTTPS-to-HTTP reverse proxy on your node.
+
 ### Environment variables
 
 #### `PORT` (default to 8080)
