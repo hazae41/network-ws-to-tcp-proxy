@@ -103,7 +103,9 @@ e.g. `8080`
 
 The paths to your TLS certificate and private key
 
-e.g. `/etc/letsencrypt/live/example.com/fullchain.pem` and `/etc/letsencrypt/live/example.com/privkey.pem`
+**They must be in a Docker accessible directory**
+
+e.g. `./tls/fullchain.pem` and `./tls/privkey.pem`
 
 #### `PRIVATE_KEY_ZERO_HEX` (required)
 
