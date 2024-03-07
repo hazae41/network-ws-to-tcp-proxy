@@ -97,7 +97,7 @@ The exposed port
 
 e.g. `8080`
 
-### `CERT` and `KEY` (optional)
+#### `CERT` and `KEY` (optional)
 
 **Don't set if cloud-hosting**
 
