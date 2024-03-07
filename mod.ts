@@ -6,27 +6,39 @@ import { RpcErr, RpcError, RpcInvalidParamsError, RpcMethodNotFoundError, RpcOk,
 import { Mutex } from "npm:@hazae41/mutex@1.2.12";
 import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.2.1";
 import * as Ethers from "npm:ethers";
+import { NetworkSignaler } from "./libs/network/mod.ts";
 import Abi from "./token.abi.json" with { type: "json" };
 
-export async function main() {
+export async function main(prefix = "") {
   const envPath = new URL(import.meta.resolve("./.env.local")).pathname
 
   const {
-    PRIVATE_KEY_ZERO_HEX = Deno.env.get("PRIVATE_KEY_ZERO_HEX"),
+    SIGNALER_URL_LIST = Deno.env.get(prefix + "SIGNALER_URL_LIST"),
+    SIGNALED_URL = Deno.env.get(prefix + "SIGNALED_URL"),
+
+    PRIVATE_KEY_ZERO_HEX = Deno.env.get(prefix + "PRIVATE_KEY_ZERO_HEX"),
   } = await Dotenv.load({ envPath, examplePath: null })
 
   if (PRIVATE_KEY_ZERO_HEX == null)
     throw new Error("PRIVATE_KEY_ZERO_HEX is not set")
 
+  const [signalerUrlList = []] = [SIGNALER_URL_LIST?.split(",")]
+
+  const signaledUrl = SIGNALED_URL
+
   const privateKeyZeroHex = PRIVATE_KEY_ZERO_HEX
 
-  return await serve({ privateKeyZeroHex })
+  return await serve({ signalerUrlList, signaledUrl, privateKeyZeroHex })
 }
 
 export async function serve(params: {
-  privateKeyZeroHex: string
+  readonly signalerUrlList: string[],
+
+  readonly signaledUrl?: string,
+
+  readonly privateKeyZeroHex: string
 }) {
-  const { privateKeyZeroHex } = params
+  const { signalerUrlList, signaledUrl, privateKeyZeroHex } = params
 
   await initBundledOnce()
 
@@ -292,6 +304,16 @@ export async function serve(params: {
     socket.addEventListener("close", () => close())
 
     return response
+  }
+
+  for (const signalerUrl of signalerUrlList) {
+    const signaler = new NetworkSignaler(signalerUrl)
+
+    signaler.signal(crypto.randomUUID(), {
+      protocols: [`wss:string:json-rpc:net`, `wss:bytes:(pay-by-byte|tcp)`],
+      location: signaledUrl,
+      price: 1n.toString()
+    }).catch(console.warn)
   }
 
   return { onHttpRequest }

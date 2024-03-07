@@ -115,46 +115,19 @@ This account must have some xDAI (gas on Gnosis chain).
 
 e.g. `0x35609a4c7e0334d76e15d107c52ee4e9beab1199556cef78fd8624351c0e2c8c`
 
-### Registering
+#### `SIGNALER_URL_LIST` (recommended)
 
-You can register your proxy so it can be used by applications and services
+A comma-separated list of signaler url in order to publish your node there and be on the market
 
-Your proxy should 
-- be publicly accessible via HTTPS (this should be the case if you used a cloud hosting)
-- respond with correct access-control headers (this should be the case if you used a cloud hosting)
-- have a correct uptime (this should be the case if you pay for it)
+This is usually a `wss:` url
 
-> You should also setup a custom domain name to point to your proxy if you can, to prevent the registry from being full of dead addresses
-> 
-> <img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/16a8748c-32c2-4eae-beda-64101531e2ab" width="500" />
+e.g. `wss://signal.node0.hazae41.me`
 
-You can test the connection to your proxy by running the following code in the DevTools console of a non-CSP-protected page (e.g. the new tab page on Chrome)
+#### `SIGNALED_URL` (recommended)
 
-```tsx
-new WebSocket("wss://HOSTNAME[:PORT]")
-```
+The public url for contacting your node over WebSocket
 
-> Replace HOSTNAME by the domain name (or IP address) of your proxy (e.g. `myproxy.mywebsite.com`)
-> 
-> And PORT is only required if your proxy is on another port than 443 (the HTTPS port)
-> 
-> For example, if your proxy is on a cloud hosting, the port should be 443, so you need to do
->
-> ```tsx
-> new WebSocket("wss://myproxy.mywebsite.com")
-> ```
->
-> If you self-host your proxy on port 12345, you need to do
-> 
-> ```tsx
-> new WebSocket("wss://myproxy.mywebsite.com:12345")
-> ```
-
-If you see no error, then you can register your proxy by calling `register` with `HOSTNAME[:PORT]`
-
-https://gnosisscan.io/address/0x23Ece04aF67cC4c484f3A4b136A6F97b76A12Ebe#writeContract
-
-<img src="https://github.com/hazae41/network-ws-to-tcp-proxy/assets/4405263/6296cb76-3dc8-4b58-a6a0-7ab620f1ec99" width="500" />
+e.g. `wss://myrpc.example.com` or `wss://something.onrender.com`
 
 ## Protocol
 
