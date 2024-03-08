@@ -15,7 +15,7 @@ build:
 	@docker build --build-arg port=$(PORT) -t $$(basename $(PWD)):$$(git log -1 --pretty=%h) .
 
 start:
-	@docker run --rm -it -p $(PORT):$(PORT) $$(basename $(PWD)):$$(git log -1 --pretty=%h)
+	@docker run --rm -it -p $(PORT):$(PORT) -v $(CERT):$(CERT) -v $(KEY):$(KEY) $$(basename $(PWD)):$$(git log -1 --pretty=%h)
 
 logs:
 	@docker logs $$(docker ps -a | awk '{ print $$1,$$2 }' | grep $$(basename $(PWD))  | awk '{print $$1 }')

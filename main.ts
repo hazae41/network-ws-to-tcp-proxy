@@ -9,6 +9,16 @@ const {
   KEY = Deno.env.get("KEY"),
 } = await Dotenv.load({ envPath, examplePath: null })
 
+const port = Number(PORT)
+
+const cert = CERT != null
+  ? Deno.readTextFileSync(CERT)
+  : undefined
+
+const key = KEY != null
+  ? Deno.readTextFileSync(KEY)
+  : undefined
+
 const { onHttpRequest } = await main()
 
-Deno.serve({ hostname: "0.0.0.0", port: Number(PORT), cert: CERT, key: KEY }, onHttpRequest)
+Deno.serve({ hostname: "0.0.0.0", port, cert, key }, onHttpRequest)
