@@ -6,6 +6,7 @@ import { RpcErr, RpcError, RpcInvalidParamsError, RpcMethodNotFoundError, RpcOk,
 import { Mutex } from "npm:@hazae41/mutex@1.2.12";
 import { Memory, NetworkMixin, base16_decode_mixed, base16_encode_lower, initBundledOnce } from "npm:@hazae41/network-bundle@1.2.1";
 import * as Ethers from "npm:ethers";
+import { warn } from "./libs/ethers/mod.ts";
 import { NetworkSignaler } from "./libs/network/mod.ts";
 import Abi from "./token.abi.json" with { type: "json" };
 
@@ -78,6 +79,56 @@ export async function serve(params: {
   let minimumZeroHex = `0x${minimumBase16}`
 
   const balanceByUuid = new Map<string, bigint>()
+
+  const claim = async (pendingTotalValueBigInt2: bigint, pendingSecretZeroHexArray2: string[]) => {
+    const backpressure = mutex.locked
+
+    if (backpressure) {
+      minimumBigInt = minimumBigInt * 2n
+      minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+      minimumZeroHex = `0x${minimumBase16}`
+
+      console.log(`Increasing minimum to ${minimumBigInt.toString()} wei`)
+    }
+
+    await mutex.lock(async () => {
+      if (backpressure) {
+        minimumBigInt = minimumBigInt / 2n
+        minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
+        minimumZeroHex = `0x${minimumBase16}`
+
+        console.log(`Decreasing minimum to ${minimumBigInt.toString()} wei`)
+      }
+
+      const nonce = await wallet.getNonce("latest")
+
+      while (true) {
+        const signal = AbortSignal.timeout(15000)
+        const future = new Future<never>()
+
+        const onAbort = () => future.reject(new Error("Aborted"))
+
+        try {
+          signal.addEventListener("abort", onAbort, { passive: true })
+
+          console.log(`Claiming ${pendingTotalValueBigInt2.toString()} wei`)
+          const responsePromise = contract.claim(nonceZeroHex, pendingSecretZeroHexArray2, { nonce })
+          const response = await Promise.race([responsePromise, future.promise])
+
+          console.log(`Waiting for ${response.hash} on ${response.nonce}`)
+          const receipt = await Promise.race([response.wait(), future.promise])
+
+          return receipt
+        } catch (e: unknown) {
+          if (signal.aborted)
+            continue
+          throw e
+        } finally {
+          signal.removeEventListener("abort", onAbort)
+        }
+      }
+    })
+  }
 
   const onHttpRequest = async (request: Request) => {
     if (request.headers.get("upgrade") !== "websocket")
@@ -194,92 +245,15 @@ export async function serve(params: {
       if (valueBigInt < minimumBigInt)
         throw new RpcInvalidParamsError()
 
+      const addedBigInt = valueBigInt - minimumBigInt
+
       const [balanceBigInt = 0n] = [balanceByUuid.get(session)]
-      balanceByUuid.set(session, balanceBigInt + valueBigInt)
+      balanceByUuid.set(session, balanceBigInt + addedBigInt)
 
       console.log(`Received ${valueBigInt.toString()} wei`)
 
       pendingSecretZeroHexArray.push(secretZeroHex)
       pendingTotalValueBigInt += valueBigInt
-
-      const claim = async (pendingTotalValueBigInt: bigint, pendingSecretZeroHexArray: string[]) => {
-        const backpressure = mutex.locked
-
-        if (backpressure) {
-          minimumBigInt = minimumBigInt * 2n
-          minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
-          minimumZeroHex = `0x${minimumBase16}`
-
-          console.log(`Increasing minimum to ${minimumBigInt.toString()} wei`)
-        }
-
-        await mutex.lock(async () => {
-          if (backpressure) {
-            minimumBigInt = minimumBigInt / 2n
-            minimumBase16 = minimumBigInt.toString(16).padStart(64, "0")
-            minimumZeroHex = `0x${minimumBase16}`
-
-            console.log(`Decreasing minimum to ${minimumBigInt.toString()} wei`)
-          }
-
-          const nonce = await wallet.getNonce("latest")
-
-          while (true) {
-            const signal = AbortSignal.timeout(15000)
-            const future = new Future<never>()
-
-            const onAbort = () => future.reject(new Error("Aborted"))
-
-            try {
-              signal.addEventListener("abort", onAbort, { passive: true })
-
-              console.log(`Claiming ${pendingTotalValueBigInt.toString()} wei`)
-              const responsePromise = contract.claim(nonceZeroHex, pendingSecretZeroHexArray, { nonce })
-              const response = await Promise.race([responsePromise, future.promise])
-
-              console.log(`Waiting for ${response.hash} on ${response.nonce}`)
-              const receipt = await Promise.race([response.wait(), future.promise])
-
-              return receipt
-            } catch (e: unknown) {
-              if (signal.aborted)
-                continue
-              throw e
-            } finally {
-              signal.removeEventListener("abort", onAbort)
-            }
-          }
-        })
-      }
-
-      const warn = (e: unknown) => {
-        if (e == null) {
-          console.error("ERROR", e)
-          return
-        }
-
-        if (typeof e !== "object") {
-          console.error("ERROR", e)
-          return
-        }
-
-        if ("info" in e) {
-          warn(e.info)
-          return
-        }
-
-        if ("error" in e) {
-          warn(e.error)
-          return
-        }
-
-        if ("message" in e) {
-          console.error("ERROR", e.message)
-          return
-        }
-
-        console.error("ERROR", e)
-      }
 
       if (pendingSecretZeroHexArray.length > 640) {
         claim(pendingTotalValueBigInt, pendingSecretZeroHexArray).catch(warn)
@@ -288,7 +262,7 @@ export async function serve(params: {
         pendingTotalValueBigInt = 0n
       }
 
-      return valueBigInt.toString()
+      return addedBigInt.toString()
     }
 
     tcp.readable
