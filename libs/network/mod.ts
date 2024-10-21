@@ -113,7 +113,7 @@ export class PricePerRequestNetworkSocket {
       minimumZeroHex
     } = await this.requestOrThrow<NetworkParams>({
       method: "net_get"
-    }, 0n).then(r => r.unwrap())
+    }, 0n).then(r => r.getOrThrow())
 
     const minimumBigInt = BigInt(minimumZeroHex)
 
@@ -144,7 +144,7 @@ export class PricePerRequestNetworkSocket {
       const secretBase16 = base16_encode_lower(secretMemory)
       const secretZeroHex = `0x${secretBase16}`
 
-      this.session.balance += await this.requestOrThrow<string>({ method: "net_tip", params: [secretZeroHex] }, 0n).then(r => BigInt(r.unwrap()))
+      this.session.balance += await this.requestOrThrow<string>({ method: "net_tip", params: [secretZeroHex] }, 0n).then(r => BigInt(r.getOrThrow()))
     }
   }
 
@@ -195,7 +195,7 @@ export class NetworkSignaler {
             socket.requestOrThrow<void>({
               method: "net_signal",
               params: [uuid, params]
-            }, (2n ** 20n)).then(r => r.unwrap()).catch(console.warn)
+            }, (2n ** 20n)).then(r => r.getOrThrow()).catch(console.warn)
 
           this.#socket = socket
 
@@ -244,7 +244,7 @@ export class NetworkSignaler {
       this.#socket.requestOrThrow<void>({
         method: "net_signal",
         params: [uuid, params]
-      }, (2n ** 20n)).then(r => r.unwrap()).catch(console.warn)
+      }, (2n ** 20n)).then(r => r.getOrThrow()).catch(console.warn)
     })
   }
 
